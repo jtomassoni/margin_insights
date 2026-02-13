@@ -35,7 +35,6 @@ export interface ProfitLeakReport {
 }
 
 const DEFAULT_TARGET_MARGIN = 0.75;
-const BOTTOM_PCT = 20;
 /** Volume percentile above which a low-margin item is treated as a "strategic candidate" (possible loss leader). */
 const STRATEGIC_VOLUME_PCT = 60;
 const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -59,6 +58,7 @@ export const buildProfitLeakReport = (
   perItemTargetMargin?: Record<string, number>,
   strategicItemNames?: Set<string>
 ): ProfitLeakReport => {
+  const targetPct = targetMargin * 100;
   const withMargin = rows.filter((r) => r.revenue > 0 && !Number.isNaN(r.gross_margin_pct));
   if (withMargin.length === 0) {
     return {
@@ -76,10 +76,15 @@ export const buildProfitLeakReport = (
     };
   }
 
-  const sorted = [...withMargin].sort((a, b) => a.gross_margin_pct - b.gross_margin_pct);
-  const cutoffIndex = Math.max(0, Math.floor(sorted.length * (BOTTOM_PCT / 100)) - 1);
-  const marginThreshold = sorted[cutoffIndex]?.gross_margin_pct ?? 0;
-  const bottomItems = sorted.filter((r) => r.gross_margin_pct <= marginThreshold);
+  // Use effective price (menu/display price when set) so "below target" matches what we show and price suggestions use.
+  const effectiveMarginPct = (r: ItemMarginRow) => {
+    const price = r.price ?? (r.units_sold > 0 ? r.revenue / r.units_sold : 0);
+    if (price <= 0) return NaN;
+    return ((price - r.cost_per_serving) / price) * 100;
+  };
+  const belowTarget = withMargin.filter((r) => effectiveMarginPct(r) < targetPct);
+  const sorted = [...belowTarget].sort((a, b) => effectiveMarginPct(a) - effectiveMarginPct(b));
+  const bottomItems = sorted;
 
   const volumes = [...withMargin].map((r) => r.units_sold).sort((a, b) => a - b);
   const volumeAtStrategic = percentile(volumes, STRATEGIC_VOLUME_PCT);
@@ -94,15 +99,19 @@ export const buildProfitLeakReport = (
     const suggestion = suggestPrice(r.cost_per_serving, price, target);
     const priceAtTarget = priceAtTargetMargin(r.cost_per_serving, target);
     const potential_contribution = (priceAtTarget - r.cost_per_serving) * r.units_sold;
-    const estimated_lost_profit_per_month = Math.max(0, potential_contribution - r.contribution_margin);
+    // Use contribution at the price we're evaluating (menu/display price), not actual sales revenue,
+    // so leak $ is correct when menu prices are overridden (e.g. bar demo).
+    const current_contribution_at_price = (price - r.cost_per_serving) * r.units_sold;
+    const estimated_lost_profit_per_month = Math.max(0, potential_contribution - current_contribution_at_price);
     const role: LeakItemRole = isStrategic(r.item_name, r.units_sold) ? 'strategic_candidate' : 'to_fix';
+    const marginAtPrice = price > 0 ? ((price - r.cost_per_serving) / price) * 100 : 0;
     return {
       item_name: r.item_name,
-      current_margin_pct: r.gross_margin_pct,
+      current_margin_pct: round2(marginAtPrice),
       units_sold: r.units_sold,
       revenue: r.revenue,
       cost_per_serving: r.cost_per_serving,
-      current_contribution: r.contribution_margin,
+      current_contribution: round2(current_contribution_at_price),
       suggested_price: suggestion.suggested_price,
       potential_contribution: round2(potential_contribution),
       estimated_lost_profit_per_month: round2(estimated_lost_profit_per_month),

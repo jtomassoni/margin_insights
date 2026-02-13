@@ -1,233 +1,42 @@
-# POS Profit Intelligence Engine
-## Founder Roadmap & Living TODO
+# Margin Insights — Living TODO
+
+## ✅ Completed (this pass)
+
+- [x] Design tokens (HSL) in `.landing`: `--background`, `--foreground`, `--primary`, `--primary-foreground`, `--muted`, `--muted-foreground`, `--card`, `--card-foreground`, `--border`, `--ring`, `--radius`
+- [x] Warm gradient background (slate-50 → bluethe -50 feel)
+- [x] Hero copy: headline "Know your true margin. Down to the ingredient." + subhead (best-sellers / leaks / POS data)
+- [x] CTA hierarchy: primary "Bar demo — drinks & pour cost", secondary outline "Restaurant demo — food menu"
+- [x] Micro-trust line under CTAs: "Works with Square, Toast & CSV exports. No POS login required."
+- [x] Hero image container: shadow-2xl, ring, optional radial glow; no boxed stock-photo feel
+- [x] Value cards row (3 cards): Spot low-margin best-sellers, Catch over-pouring & comps, Price suggestions from real costs
+- [x] Nav: single primary CTA "Bar demo" in header; full links + both demos in hamburger
+- [x] Mobile-first hero: stack order headline → subhead → CTAs → trust → image
+- [x] Desktop (≥1024px): two-column hero, image slightly larger on right
+- [x] FAQ POS copy updated to Square, Toast & CSV (matches hero trust line).
+- [x] Report image path fixed: `report-grapgic.png` → `report-graphic.png`.
+- [x] Demo-dashboard wrapped in Suspense so build passes (useSearchParams).
+- [x] Focus-visible styles for landing: buttons, nav links, hamburger toggle.
 
 ---
 
-# 🎯 Core Mission (V1)
+## 🔜 Next (prioritized)
 
-Help independent bars and restaurants uncover hidden profit leaks using POS data and ingredient-level cost modeling.
-
-V1 Focus:
-- Toast CSV ingestion
-- Ingredient-level recipe builder
-- Margin & contribution analysis
-- Price increase suggestions
-- Profit leak detection
-
-NOT in scope:
-- Labor analytics
-- Multi-tenant architecture
-- API integrations
-- Industry benchmarking
-- Billing automation
-- Enterprise features
+1. **Above-the-fold tune** — On small phones, consider shortening value-card copy or reducing padding so all three cards feel “above fold”.
+2. **Contrast check** — Run WCAG contrast checker on muted text and primary button (aim for AA).
+3. **Report image asset** — Ensure `public/images/report-graphic.png` exists (path fixed from `report-grapgic.png`).
 
 ---
 
-# 🏗 Architecture Plan
+## 💡 Experiments / ideas
 
-## Repo Structure
-
-/insight-engine
-  /adapters
-    toastCsvAdapter.ts
-  /models
-    MenuItem.ts
-    Ingredient.ts
-    Recipe.ts
-    SalesRecord.ts
-  /services
-    costCalculator.ts
-    marginEngine.ts
-    pricingEngine.ts
-    quadrantAnalysis.ts
-  /reports
-    profitLeakReport.ts
-  /ui
-    (simple dashboard + recipe builder)
-  /docs
-    TODO.md
+- **A/B copy** — Test alternate headlines: e.g. "Your best-sellers might be losing you money" vs current.
+- **Dark hero variant** — Optional dark hero block for contrast (e.g. dark blue bar with same copy).
+- **Testimonial block** — Short quote from a bar/restaurant owner + optional headshot.
+- **POS logos row** — "Works with Square, Toast & CSV" as a row of logos under hero or in footer.
+- **shadcn/ui** — If you add Tailwind later, migrate buttons/cards to shadcn Button and Card for consistency.
 
 ---
 
-# 🥇 PHASE 1: CSV INGESTION
+## 🐛 Bugs
 
-- [ ] Obtain real Toast export samples
-- [ ] Define canonical SalesRecord model
-- [ ] Build toastCsvAdapter
-- [ ] Normalize:
-      - item_name
-      - units_sold
-      - revenue
-      - timestamps (optional for now)
-- [ ] Validate upload flow
-- [ ] Store data per restaurant instance
-
-Deliverable:
-Upload → Parsed sales dataset stored.
-
----
-
-# 🥈 PHASE 2: INGREDIENT & RECIPE ENGINE (LEVEL 2)
-
-## Ingredient Master Table
-
-- [ ] Ingredient name
-- [ ] Unit type (oz, ml, grams, count)
-- [ ] Cost per unit
-- [ ] Optional waste factor (future)
-
-## Recipe Builder
-
-- [ ] Map menu item → list of ingredients
-- [ ] Ingredient quantity per menu item
-- [ ] Compute true cost per serving
-
-Deliverable:
-Each menu item has a computed cost.
-
----
-
-# 🥉 PHASE 3: MARGIN ENGINE
-
-- [ ] Compute gross margin %
-- [ ] Compute contribution margin
-- [ ] Aggregate:
-      - total profit per item
-      - category margin
-- [ ] Rank items by:
-      - volume
-      - margin
-      - contribution
-
-Deliverable:
-Sortable margin dashboard.
-
----
-
-# 🏆 PHASE 4: PROFIT LEAK DETECTION
-
-## Quadrant Analysis
-
-- [ ] High volume / Low margin
-- [ ] Low volume / Low margin
-- [ ] High volume / High margin
-- [ ] Low volume / High margin
-
-## Leak Detection Logic
-
-- [ ] Identify bottom 20% margin items
-- [ ] Calculate estimated lost profit if raised to target margin
-- [ ] Output:
-      "You're losing approximately $X/month on Y SKUs."
-
-Deliverable:
-Profit Leak Report JSON + simple UI view.
-
----
-
-# 🧮 PHASE 5: PRICE SUGGESTION ENGINE
-
-Inputs:
-- Target margin (default 75%)
-- Current cost
-- Current price
-
-Logic:
-Suggested price = cost / (1 - target_margin)
-
-- [ ] Add safety band (max +12%)
-- [ ] Flag items where increase > 15% (requires caution)
-
-Deliverable:
-Actionable pricing suggestions.
-
----
-
-# 🌐 PHASE 6: MARKETING SITE (SIMPLE)
-
-## Landing Page Must Communicate:
-
-- Problem: Profit leaks
-- Mechanism: POS + Ingredient modeling
-- Outcome: Identify $ lost per month
-- CTA: "Upload your POS export"
-
-Sections:
-- Hero
-- How it works (3 steps)
-- Example profit leak report
-- Pricing (beta pricing)
-- FAQ (data security, no long-term contract)
-
-No overdesign.
-No fake enterprise claims.
-
----
-
-# 🔐 DATA & PRIVACY (V1)
-
-- Store minimal PII
-- Do NOT store employee names
-- Strip sensitive identifiers
-- Restaurant data siloed per instance
-- No cross-client aggregation (yet)
-
-Future:
-Add anonymized aggregation only with explicit opt-in.
-
----
-
-# 💰 MONETIZATION PLAN
-
-Victoria:
-$99/month (Founding beta)
-
-Next 2 customers:
-$149/month
-
-After validation:
-$199–$249/month
-
----
-
-# 🚫 DO NOT BUILD YET
-
-- Multi-tenant auth
-- Stripe billing automation
-- API integrations
-- Benchmarking engine
-- Staff performance analytics
-- AI chatbot
-- Inventory forecasting
-- Complex labor modeling
-
-Focus = Profit Leak Engine.
-
----
-
-# 📊 SUCCESS METRICS
-
-Within 90 days:
-
-- 2 additional paying customers
-- Each identifies ≥ $500/month in potential improvement
-- Owner logs in at least weekly during review phase
-
-If this does not happen:
-Reevaluate wedge.
-
----
-
-# 🧠 Long Term Vision (Not Now)
-
-- Direct Toast API integration
-- Self onboarding
-- Automated weekly insight emails
-- Cross-market benchmarking
-- Industry reports
-- S-Corp revenue optimization
-
-But only after validation.
-
----
+- None logged yet. Add any layout/contrast/behavior issues here.

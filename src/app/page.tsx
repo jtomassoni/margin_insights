@@ -1,29 +1,52 @@
 import Link from 'next/link';
+import Image from 'next/image';
+import LandingHeader from '@/components/LandingHeader';
+import ValueCards from '@/components/ValueCards';
+import ScrollHint from '@/components/ScrollHint';
+
+// Hero uses plain <img> so it stays within viewport on mobile (Next/Image wrapper was forcing overflow)
+const HeroImage = () => (
+  <img
+    src="/images/hero.png"
+    alt="Margin Insights dashboard preview"
+    width={560}
+    height={360}
+    className="hero-img"
+    fetchPriority="high"
+  />
+);
 
 const LandingPage = () => (
     <div className="landing">
-      <header className="landing-header">
-        <div className="landing-brand">Margin Insights</div>
-        <nav>
-          <Link href="#how">How it works</Link>
-          <Link href="#report">Example report</Link>
-          <Link href="#pricing">Pricing</Link>
-          <Link href="#faq">FAQ</Link>
-          <Link href="/demo-dashboard" className="btn btn-primary">Try a demo</Link>
-        </nav>
-      </header>
+      <LandingHeader />
 
       <section className="hero">
-        <h1>Stop leaving money on the table</h1>
-        <p className="hero-sub">
-          Independent bars and restaurants lose thousands each month to hidden profit leaks.
-          We use your POS data and ingredient-level cost modeling to find exactly where — and how much.
-        </p>
-        <Link href="/demo-dashboard" className="btn btn-primary btn-lg">Try a demo</Link>
+        <div className="hero-inner">
+          <div className="hero-content">
+            <h1>Know your true margin. Down to the ingredient.</h1>
+            <p className="hero-sub">
+              Your best-sellers can be your least profitable — we flag the leaks in pour cost and menu pricing using your POS data.
+            </p>
+            <div className="hero-demo-links">
+              <Link href="/demo-dashboard" className="btn btn-primary btn-lg">Try the demo</Link>
+            </div>
+            <p className="hero-trust">Works with Square, Toast &amp; CSV exports. No POS login required.</p>
+          </div>
+          <div className="hero-image">
+            <div className="hero-image-wrap">
+              <HeroImage />
+            </div>
+          </div>
+        </div>
+        <ScrollHint />
+        <ValueCards />
       </section>
 
       <section id="how" className="section how">
         <h2>How it works</h2>
+        <div className="how-workflow">
+          <Image src="/images/workflow.png" alt="Workflow: try demo, recipe & cost, see the leaks" width={800} height={280} className="workflow-img" />
+        </div>
         <div className="steps">
           <div className="step">
             <span className="step-num">1</span>
@@ -46,20 +69,43 @@ const LandingPage = () => (
       <section id="report" className="section example">
         <h2>Example profit leak report</h2>
         <div className="report-preview">
-          <p className="report-message">
-            &ldquo;You&apos;re losing approximately <strong>$1,240/month</strong> on 8 SKU(s) by pricing below target margin.&rdquo;
-          </p>
-          <p className="report-detail">Bottom-margin items get actionable price suggestions and estimated upside. No guesswork.</p>
+          <div className="report-graphic">
+            <Image src="/images/report-graphic.png" alt="Profit leak report example" width={500} height={280} />
+          </div>
+          <div className="report-copy">
+            <p className="report-message">
+              &ldquo;You&apos;re losing approximately <strong>$1,240/month</strong> on 8 SKU(s) by pricing below target margin.&rdquo;
+            </p>
+            <p className="report-detail">Bottom-margin items get actionable price suggestions and estimated upside. No guesswork.</p>
+          </div>
         </div>
       </section>
 
       <section id="pricing" className="section pricing">
+        <div className="pricing-with-illustration">
+          <div className="pricing-illustration">
+            <Image src="/images/owner-illustration.png" alt="" width={320} height={280} />
+          </div>
+          <div className="pricing-content">
         <h2>Pricing</h2>
-        <p className="pricing-note">$99/month for our first client only — founding beta.</p>
-        <div className="price-card">
-          <div className="price-amount">$249<span>/month</span></div>
-          <p>Full access: CSV ingestion, recipe builder, margin dashboard, profit leak report, and price suggestions.</p>
-          <Link href="/demo-dashboard" className="btn btn-primary">Try a demo</Link>
+        <div className="price-cards">
+          <div className="price-card">
+            <div className="price-amount">$249<span>/month</span></div>
+            <p>Full access: CSV ingestion, recipe builder, margin dashboard, profit leak report, and price suggestions. Cancel anytime.</p>
+            <div className="price-card-actions">
+              <Link href="/demo-dashboard" className="btn btn-primary">Try the demo</Link>
+            </div>
+          </div>
+          <div className="price-card price-card-lifetime">
+            <span className="price-card-badge">Limited — while we&apos;re new</span>
+            <div className="price-amount">$2,000<span> once</span></div>
+            <p>Lifetime access. Same full product — never pay a subscription. For our first customers who want to own it forever.</p>
+            <div className="price-card-actions">
+              <Link href="/demo-dashboard" className="btn btn-outline">Try the demo first</Link>
+            </div>
+          </div>
+        </div>
+          </div>
         </div>
       </section>
 
@@ -71,7 +117,7 @@ const LandingPage = () => (
           <dt>Contract?</dt>
           <dd>No long-term lock-in. Cancel when you want.</dd>
           <dt>What POS do you support?</dt>
-          <dd>V1 supports Toast CSV exports. More integrations later.</dd>
+          <dd>Works with Square, Toast &amp; CSV exports. No POS login required. More integrations coming.</dd>
         </dl>
       </section>
 

@@ -24,7 +24,7 @@ export const demoMenuPrices: Record<string, number> = {
   "Fish Tacos": 17,
   "Smash Burger": 16,
   "Chicken Sandwich": 15,
-  "Steak Frites": 24,
+  "Steak Frites": 46,   // luxury item — strong margin (~76%), never a loss leader
   "BBQ Ribs": 26,
   "Salmon Plate": 25,
   "Veggie Bowl": 14,
@@ -47,6 +47,12 @@ export const demoMenuPrices: Record<string, number> = {
   "Tequila Shot": 7,
   "Jameson Shot": 8,
   "Rumple Shot": 7,
+  "Vodka Soda": 4,
+  "Sangria Glass": 6,
+  "Draft Cider": 5,
+  "Side Salad": 1.35,       // ~75% target; below = leak (cost ~$0.33)
+  "Mac & Cheese": 1.9,      // ~74% margin — leak (cost ~$0.49)
+  "Cheese Quesadilla": 1.4, // ~74% margin — leak (cost ~$0.36)
 };
 
 // Qty: oz for weight/volume; count (each) for bun and tortillas. 1 sale deducts these from inventory.
@@ -163,7 +169,151 @@ export const recipes: Record<string, { name: string; qty: number }[]> = {
   "Tequila Shot": [{ name: "tequila", qty: 1.5 }],
   "Jameson Shot": [{ name: "irish whiskey", qty: 1.5 }],
   "Rumple Shot": [{ name: "peppermint schnapps", qty: 1.5 }],
+  "Vodka Soda": [
+    { name: "vodka", qty: 2.0 },
+    { name: "soda syrup + CO2 equiv", qty: 4.0 },
+  ],
+  "Sangria Glass": [
+    { name: "cabernet", qty: 4.0 },
+    { name: "lime juice", qty: 0.5 },
+    { name: "simple syrup", qty: 0.25 },
+    { name: "iced tea", qty: 2.0 },
+  ],
+  "Draft Cider": [{ name: "cider", qty: 16.0 }],
+  "Side Salad": [
+    { name: "greens", qty: 2.0 },
+    { name: "tomato", qty: 1.0 },
+    { name: "onion", qty: 0.5 },
+    { name: "bowl sauce", qty: 1.0 },
+  ],
+  "Mac & Cheese": [
+    { name: "pasta (dry)", qty: 4.0 },
+    { name: "american cheese", qty: 2.0 },
+    { name: "marinara", qty: 1.0 },
+  ],
+  "Cheese Quesadilla": [
+    { name: "tortillas", qty: 2 },
+    { name: "shredded cheese", qty: 2.0 },
+  ],
 };
+
+/** Menu item names that are drinks (bar-focused demo). */
+export const DEMO_DRINK_ITEMS = [
+  "IPA Draft", "Pilsner Draft", "NA Beer", "Soda", "Iced Tea", "Lemonade",
+  "House Margarita", "Old Fashioned", "Espresso Martini", "Cabernet Glass",
+  "Tequila Shot", "Jameson Shot", "Rumple Shot",
+  "Vodka Soda", "Sangria Glass", "Draft Cider",
+] as const;
+
+/** Menu item names that are food (restaurant-focused demo). */
+export const DEMO_FOOD_ITEMS = [
+  "Fish Tacos", "Smash Burger", "Chicken Sandwich", "Steak Frites", "BBQ Ribs",
+  "Salmon Plate", "Veggie Bowl", "Chicken Alfredo", "Wings", "Nachos",
+  "Truffle Fries", "Mozz Sticks", "Chips & Salsa",
+  "Side Salad", "Mac & Cheese", "Cheese Quesadilla",
+] as const;
+
+const drinkSet = new Set(DEMO_DRINK_ITEMS);
+const foodSet = new Set(DEMO_FOOD_ITEMS);
+
+/**
+ * Bar demo menu prices (bad operation). Heavily underpriced so margins are 50–65% on many items —
+ * creates large lost-profit numbers and many "to fix" items for stark demo contrast.
+ */
+const barDemoMenuPricesBad: Record<string, number> = {
+  "IPA Draft": 3.5,           // ~54% margin — big leak
+  "Pilsner Draft": 3.25,      // ~58% margin
+  "NA Beer": 1.75,            // ~62% margin
+  "Soda": 2.5,                // ~52% margin
+  "Iced Tea": 2.25,           // ~47% margin
+  "Lemonade": 2.75,           // ~52% margin
+  "House Margarita": 6,       // ~88% → 75% — still high but lower for consistency
+  "Old Fashioned": 10,         // ~68% margin
+  "Espresso Martini": 11,     // ~64% margin
+  "Cabernet Glass": 3.75,     // ~63% margin
+  "Tequila Shot": 5,          // ~72% — leak
+  "Jameson Shot": 5.5,        // ~67% — leak
+  "Rumple Shot": 4.5,         // ~69% — leak
+  "Vodka Soda": 1.25,         // ~61% margin — big leak
+  "Sangria Glass": 2.25,      // ~48% margin
+  "Draft Cider": 2.75,        // ~53% margin
+};
+
+/** Bar demo menu prices (good operation). All drinks at or above 75% target margin. */
+const barDemoMenuPricesGood: Record<string, number> = {
+  "IPA Draft": 6.5,
+  "Pilsner Draft": 5.5,
+  "NA Beer": 2.75,
+  "Soda": 3.5,
+  "Iced Tea": 3.5,
+  "Lemonade": 4,
+  "House Margarita": 9,
+  "Old Fashioned": 14,
+  "Espresso Martini": 15,
+  "Cabernet Glass": 5.75,
+  "Tequila Shot": 7,
+  "Jameson Shot": 8,
+  "Rumple Shot": 7,
+  "Vodka Soda": 2,
+  "Sangria Glass": 4.75,
+  "Draft Cider": 5.25,
+};
+
+/** Sales records for bar demo (drinks only). */
+export const getDemoSalesForBar = (): SalesRecord[] =>
+  demoSalesRecords.filter((r) => drinkSet.has(r.item_name as typeof DEMO_DRINK_ITEMS[number]));
+
+/** Sales records for restaurant demo (food only). */
+export const getDemoSalesForRestaurant = (): SalesRecord[] =>
+  demoSalesRecords.filter((r) => foodSet.has(r.item_name as typeof DEMO_FOOD_ITEMS[number]));
+
+/** Menu prices for bar demo (drinks only). scenario: 'good' = clean margins, 'bad' = profit leaks. */
+export const getDemoMenuPricesForBar = (scenario: 'good' | 'bad'): Record<string, number> =>
+  scenario === 'good' ? { ...barDemoMenuPricesGood } : { ...barDemoMenuPricesBad };
+
+/** Restaurant demo food-only prices (good operation). All items at or above 75% target. */
+const restaurantDemoMenuPricesGood: Record<string, number> = {
+  "Fish Tacos": 17,
+  "Smash Burger": 16,
+  "Chicken Sandwich": 15,
+  "Steak Frites": 46,   // luxury item — strong margin (~76%)
+  "BBQ Ribs": 26,
+  "Salmon Plate": 25,
+  "Veggie Bowl": 14,
+  "Chicken Alfredo": 22,
+  "Wings": 11,
+  "Nachos": 13,
+  "Truffle Fries": 9,
+  "Mozz Sticks": 10,
+  "Chips & Salsa": 8,
+  "Side Salad": 1.45,
+  "Mac & Cheese": 2.05,
+  "Cheese Quesadilla": 1.5,
+};
+
+/** Restaurant bad: many items heavily underpriced — 50–68% margins for stark leak report. */
+const restaurantDemoMenuPricesBad: Record<string, number> = {
+  "Fish Tacos": 14,         // ~72% — leak
+  "Smash Burger": 12,        // ~68% — leak
+  "Chicken Sandwich": 11,   // ~67% — leak
+  "Steak Frites": 46,       // luxury item — strong margin (~76%), never a loss leader
+  "BBQ Ribs": 26,
+  "Salmon Plate": 25,
+  "Veggie Bowl": 10,        // ~68% — leak
+  "Chicken Alfredo": 17,    // ~70% — leak
+  "Wings": 7,               // ~58% — big leak
+  "Nachos": 8.5,            // ~65% — leak
+  "Truffle Fries": 5.5,     // ~62% — leak
+  "Mozz Sticks": 6,        // ~60% — leak
+  "Chips & Salsa": 4.5,     // ~55% — big leak
+  "Side Salad": 1,          // ~67% — leak
+  "Mac & Cheese": 1.35,     // ~64% — leak
+  "Cheese Quesadilla": 1.1, // ~67% — leak
+};
+
+/** Menu prices for restaurant demo (food only). scenario: 'good' = clean, 'bad' = profit leaks. */
+export const getDemoMenuPricesForRestaurant = (scenario: 'good' | 'bad'): Record<string, number> =>
+  scenario === 'good' ? { ...restaurantDemoMenuPricesGood } : { ...restaurantDemoMenuPricesBad };
 
 const slug = (s: string) =>
   s
@@ -171,14 +321,13 @@ const slug = (s: string) =>
     .replace(/\s+/g, "-")
     .replace(/[^a-z0-9-]/g, "");
 
-/** Build app Ingredient[] and Recipe[] from demo recipes (for dashboard). */
-export const buildDemoIngredientsAndRecipes = (): {
+function buildIngredientsAndRecipesFromRecipeMap(recipeMap: Record<string, { name: string; qty: number }[]>): {
   ingredients: Ingredient[];
   recipes: Recipe[];
-} => {
+} {
   const nameToId = new Map<string, string>();
   const ingredients: Ingredient[] = [];
-  for (const lines of Object.values(recipes)) {
+  for (const lines of Object.values(recipeMap)) {
     for (const { name } of lines) {
       if (nameToId.has(name)) continue;
       const id = slug(name) || `ing-${nameToId.size}`;
@@ -194,7 +343,7 @@ export const buildDemoIngredientsAndRecipes = (): {
       });
     }
   }
-  const recipeList: Recipe[] = Object.entries(recipes).map(([menu_item_name, lines]) => ({
+  const recipeList: Recipe[] = Object.entries(recipeMap).map(([menu_item_name, lines]) => ({
     menu_item_name,
     lines: lines.map(({ name, qty }) => ({
       ingredient_id: nameToId.get(name)!,
@@ -202,4 +351,34 @@ export const buildDemoIngredientsAndRecipes = (): {
     })),
   }));
   return { ingredients, recipes: recipeList };
+}
+
+/** Build app Ingredient[] and Recipe[] from demo recipes (for dashboard). */
+export const buildDemoIngredientsAndRecipes = (): {
+  ingredients: Ingredient[];
+  recipes: Recipe[];
+} => buildIngredientsAndRecipesFromRecipeMap(recipes);
+
+/** Bar demo: only drink items and their ingredients (spirits, mixers, beer, wine, etc.). */
+export const buildDemoIngredientsAndRecipesForBar = (): {
+  ingredients: Ingredient[];
+  recipes: Recipe[];
+} => {
+  const barRecipes: Record<string, { name: string; qty: number }[]> = {};
+  for (const name of DEMO_DRINK_ITEMS) {
+    if (recipes[name]) barRecipes[name] = recipes[name];
+  }
+  return buildIngredientsAndRecipesFromRecipeMap(barRecipes);
+};
+
+/** Restaurant demo: only food items and their ingredients (kitchen inventory). */
+export const buildDemoIngredientsAndRecipesForRestaurant = (): {
+  ingredients: Ingredient[];
+  recipes: Recipe[];
+} => {
+  const foodRecipes: Record<string, { name: string; qty: number }[]> = {};
+  for (const name of DEMO_FOOD_ITEMS) {
+    if (recipes[name]) foodRecipes[name] = recipes[name];
+  }
+  return buildIngredientsAndRecipesFromRecipeMap(foodRecipes);
 };

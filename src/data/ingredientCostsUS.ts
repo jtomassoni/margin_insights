@@ -74,6 +74,7 @@ export const ingredientCostPerOzUS: Record<string, number> = {
   "IPA beer": 0.10,
   "pilsner beer": 0.085,
   "NA beer": 0.055,
+  "cider": 0.08,
   "soda syrup + CO2 equiv": 0.012,
   "iced tea": 0.012,
   "lemonade": 0.022,
