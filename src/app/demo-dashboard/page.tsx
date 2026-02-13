@@ -1,15 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import LandingHeader from '@/components/LandingHeader';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { SalesRecord } from '@/insight-engine/models/SalesRecord';
 import type { Ingredient } from '@/insight-engine/models/Ingredient';
 import type { Recipe } from '@/insight-engine/models/Recipe';
 import {
-  demoSalesRecords,
-  buildDemoIngredientsAndRecipes,
   demoMarginGoal,
-  demoMenuPrices,
+  getDemoSalesForBar,
+  getDemoSalesForRestaurant,
+  buildDemoIngredientsAndRecipesForBar,
+  buildDemoIngredientsAndRecipesForRestaurant,
+  getDemoMenuPricesForBar,
+  getDemoMenuPricesForRestaurant,
 } from '@/data/demoData';
 import { costPerServing } from '@/insight-engine/services/costCalculator';
 import { computeMargins, type ItemMarginRow } from '@/insight-engine/services/marginEngine';
@@ -21,7 +26,19 @@ import { ContributionBarChart, LostProfitBarChart, MarginRealityRadar, RevenueDo
 
 const uid = () => Math.random().toString(36).slice(2, 11);
 
-const DashboardPage = () => {
+export type DemoVariant = 'bar' | 'restaurant';
+export type DemoScenario = 'good' | 'bad';
+
+const DashboardContent = () => {
+  const searchParams = useSearchParams();
+  const typeParam = searchParams.get('type');
+  const scenarioParam = searchParams.get('scenario');
+  const [demoVariant, setDemoVariant] = useState<DemoVariant>(() =>
+    typeParam === 'bar' ? 'bar' : 'restaurant'
+  );
+  const [demoScenario, setDemoScenario] = useState<DemoScenario>(() =>
+    scenarioParam === 'good' ? 'good' : 'bad'
+  );
   const [salesRecords, setSalesRecords] = useState<SalesRecord[]>([]);
   const [demoError, setDemoError] = useState<string | null>(null);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
@@ -29,34 +46,79 @@ const DashboardPage = () => {
   const [sortKey, setSortKey] = useState<keyof ItemMarginRow>('revenue');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [activeTab, setActiveTab] = useState<'margins' | 'leaks' | 'pricing' | 'quadrant'>('leaks');
+  const [dashboardRevealed, setDashboardRevealed] = useState(false);
+  const dashboardRef = useRef<HTMLDivElement>(null);
   const [marginGoal, setMarginGoal] = useState(demoMarginGoal);
-  const [menuPrices, setMenuPrices] = useState<Record<string, number>>(() => ({ ...demoMenuPrices }));
+  const [menuPrices, setMenuPrices] = useState<Record<string, number>>({});
   /** Per-item target margin (decimal). When missing, use default marginGoal. */
   const [menuMarginGoal, setMenuMarginGoal] = useState<Record<string, number>>({});
+  /** While editing a number field, hold the raw string so user can delete/retype (key = field id). */
+  const [editingNum, setEditingNum] = useState<Record<string, string>>({});
+  /** Filter ingredients list by name. */
+  const [ingredientFilter, setIngredientFilter] = useState('');
+  /** Which menu item's recipe is shown in the recipe builder (one at a time). */
+  const [selectedRecipeName, setSelectedRecipeName] = useState<string>('');
 
-  const startDemo = useCallback(() => {
+  const startDemo = useCallback((variant: DemoVariant, scenario: DemoScenario) => {
     setDemoError(null);
     try {
-      setSalesRecords(demoSalesRecords);
-      const { ingredients: demoIngredients, recipes: demoRecipes } = buildDemoIngredientsAndRecipes();
+      const sales = variant === 'bar' ? getDemoSalesForBar() : getDemoSalesForRestaurant();
+      const { ingredients: demoIngredients, recipes: demoRecipes } =
+        variant === 'bar' ? buildDemoIngredientsAndRecipesForBar() : buildDemoIngredientsAndRecipesForRestaurant();
+      const prices = variant === 'bar' ? getDemoMenuPricesForBar(scenario) : getDemoMenuPricesForRestaurant(scenario);
+      setSalesRecords(sales);
       setIngredients(demoIngredients);
       setRecipes(demoRecipes);
       setMarginGoal(demoMarginGoal);
-      setMenuPrices({ ...demoMenuPrices });
+      setMenuPrices({ ...prices });
       setMenuMarginGoal({});
+      setEditingNum({});
     } catch (e) {
       setDemoError('Could not load demo data.');
     }
   }, []);
 
   useEffect(() => {
-    startDemo();
-  }, [startDemo]);
+    startDemo(demoVariant, demoScenario);
+  }, [demoVariant, demoScenario, startDemo]);
+
+  const switchVariant = (variant: DemoVariant) => {
+    if (variant === demoVariant) return;
+    setDemoVariant(variant);
+    const url = new URL(window.location.href);
+    url.searchParams.set('type', variant);
+    window.history.replaceState({}, '', url.toString());
+  };
+
+  const switchScenario = (scenario: DemoScenario) => {
+    if (scenario === demoScenario) return;
+    setDemoScenario(scenario);
+    const url = new URL(window.location.href);
+    url.searchParams.set('scenario', scenario);
+    window.history.replaceState({}, '', url.toString());
+  };
 
   const uniqueItemNames = useMemo(() => {
     const set = new Set(salesRecords.map((r) => r.item_name.trim()));
     return Array.from(set).sort();
   }, [salesRecords]);
+
+  /** Keep selected recipe in sync when menu items load or change. */
+  useEffect(() => {
+    if (uniqueItemNames.length === 0) {
+      setSelectedRecipeName('');
+      return;
+    }
+    if (!selectedRecipeName || !uniqueItemNames.includes(selectedRecipeName)) {
+      setSelectedRecipeName(uniqueItemNames[0]);
+    }
+  }, [uniqueItemNames.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps -- only when list identity changes
+
+  const filteredIngredients = useMemo(() => {
+    const q = ingredientFilter.trim().toLowerCase();
+    if (!q) return ingredients;
+    return ingredients.filter((i) => i.name.toLowerCase().includes(q));
+  }, [ingredients, ingredientFilter]);
 
   const itemCosts = useMemo(() => {
     const map = new Map<string, number>();
@@ -157,22 +219,418 @@ const DashboardPage = () => {
     else setSortKey(key);
   };
 
+  const showDashboard = () => {
+    setDashboardRevealed(true);
+    setTimeout(() => {
+      dashboardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  };
+
   return (
-    <div className="dashboard">
-      <Link href="/" className="link-home">← Back to home</Link>
-      <h1>Demo dashboard</h1>
+    <div className="landing demo-page">
+      <LandingHeader />
+      <div className="demo-layout">
+        <aside className="demo-sidebar" aria-label="Demo configuration">
+          <p className="demo-sidebar-label">Admin / config</p>
+          <Link href="/" className="link-home">← Back to home</Link>
+          <div className="demo-badge" role="status" aria-label="This page is a demo">
+            Interactive demo — sample data only
+          </div>
+          <div className="demo-sidebar-hero">
+            <h1 className="demo-hero-title">See your true margin in minutes</h1>
+            <p className="demo-hero-sub">
+              Pick a menu type and scenario below, then click <strong>Show me the dashboard</strong> to see your report. Imagine this with your own POS data.
+            </p>
+          </div>
 
-      <section className="dashboard-section dashboard-section-compact">
-        {demoError && <p style={{ color: 'var(--danger)', marginBottom: '0.5rem' }}>{demoError}</p>}
-        {salesRecords.length > 0 && (
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
-            Using sample data: {salesRecords.length} sales records, {uniqueItemNames.length} unique items.
-          </p>
-        )}
-      </section>
+          <section className="demo-chooser demo-chooser--compact">
+            <h2 className="demo-chooser-title">Configure demo</h2>
+            <p className="demo-chooser-subtitle">Pick a menu type, then choose which scenario to explore.</p>
+            <div className="demo-chooser-menu-type">
+              <span className="demo-chooser-label">Menu type</span>
+              <div className="demo-variant-tabs" role="tablist" aria-label="Demo type">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={demoVariant === 'bar'}
+                  className={demoVariant === 'bar' ? 'active' : ''}
+                  onClick={() => switchVariant('bar')}
+                >
+                  Bar
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={demoVariant === 'restaurant'}
+                  className={demoVariant === 'restaurant' ? 'active' : ''}
+                  onClick={() => switchVariant('restaurant')}
+                >
+                  Restaurant
+                </button>
+              </div>
+              <p className="demo-chooser-hint">
+                {demoVariant === 'bar' ? 'Drinks, pour cost, cocktails.' : 'Food, entrees, kitchen.'}
+              </p>
+            </div>
 
+            <div className="demo-chooser-scenario demo-chooser-scenario--compact">
+              <span className="demo-chooser-label">Scenario</span>
+              <p className="demo-chooser-scenario-desc">Compare a healthy operation vs one with profit leaks. Click either to switch.</p>
+              <div className="demo-scenario-toggles" role="tablist" aria-label="Good vs bad operation">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={demoScenario === 'good'}
+                  className={`demo-scenario-toggle demo-scenario-toggle--good ${demoScenario === 'good' ? 'active' : ''}`}
+                  onClick={() => switchScenario('good')}
+                >
+                  Good
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={demoScenario === 'bad'}
+                  className={`demo-scenario-toggle demo-scenario-toggle--bad ${demoScenario === 'bad' ? 'active' : ''}`}
+                  onClick={() => switchScenario('bad')}
+                >
+                  Bad
+                </button>
+              </div>
+            </div>
+
+            {salesRecords.length > 0 && (
+              <div className="demo-chooser-cta-wrap">
+                <button
+                  type="button"
+                  className="btn btn-primary demo-chooser-cta"
+                  onClick={showDashboard}
+                >
+                  Show me the dashboard
+                </button>
+                <p className="demo-chooser-cta-hint">See your margin report, charts & price suggestions</p>
+              </div>
+            )}
+
+            {demoError && <p className="demo-chooser-error">{demoError}</p>}
+            {salesRecords.length > 0 && (
+              <p className="demo-chooser-data-hint">
+                {salesRecords.length} records, {uniqueItemNames.length} {demoVariant === 'bar' ? 'drinks' : 'items'}.
+              </p>
+            )}
+
+            <details className="demo-how-to">
+              <summary>How to read the dashboard</summary>
+              <p>Profit leak: items below target margin and estimated $ lost. Margins: per-item cost vs price. Price suggestions: raise prices to hit target. Quadrant: volume (left–right) vs margin % (bottom–top); top-right = stars, bottom-right = fix or loss leaders.</p>
+            </details>
+
+            {salesRecords.length > 0 && (
+              <section className="demo-config-raw raw-data-section">
+                <details>
+                  <summary>Ingredients &amp; recipes — optional tweaks</summary>
+                  <div className="collapsible-body">
+                    <div className="sub-section">
+                      <h3>Defaults (target margin)</h3>
+                      <p style={{ color: 'var(--text-muted)', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                        Default target margin is used for all {demoVariant === 'bar' ? 'drinks' : 'menu items'} unless you set a per-item margin in the recipe builder.
+                      </p>
+                      <div className="form-row">
+                        <label htmlFor="default-margin">Default target margin (%)</label>
+                        <input
+                          id="default-margin"
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="75"
+                          value={editingNum['default-margin'] ?? String(Math.round(marginGoal * 100))}
+                          onFocus={() => setEditingNum((e) => ({ ...e, 'default-margin': String(Math.round(marginGoal * 100)) }))}
+                          onChange={(e) => setEditingNum((prev) => ({ ...prev, 'default-margin': e.target.value }))}
+                          onBlur={() => {
+                            const raw = editingNum['default-margin'];
+                            if (raw == null) return;
+                            const n = Math.max(0, Math.min(100, parseFloat(raw) || 0));
+                            setMarginGoal(n / 100);
+                            setEditingNum((prev) => { const next = { ...prev }; delete next['default-margin']; return next; });
+                          }}
+                          style={{ width: '5rem' }}
+                          aria-label="Default target margin percent"
+                        />
+                      </div>
+                    </div>
+                    <div className="sub-section">
+                      <h3>{demoVariant === 'bar' ? 'Drink ingredients' : 'Ingredients'} ({ingredients.length})</h3>
+                      <p style={{ color: 'var(--text-muted)', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                        {demoVariant === 'bar'
+                          ? 'Spirits, mixers, beer, wine — cost per unit. Assign them to each drink in the recipe builder to see pour cost and margin.'
+                          : 'Kitchen ingredients with cost per unit. Assign them to menu items in the recipe builder.'}
+                      </p>
+                      <div className="ingredients-toolbar">
+                        <input
+                          type="search"
+                          placeholder="Search ingredients…"
+                          value={ingredientFilter}
+                          onChange={(e) => setIngredientFilter(e.target.value)}
+                          className="ingredients-search"
+                          aria-label="Filter ingredients by name"
+                        />
+                        <button type="button" className="btn btn-primary" onClick={addIngredient}>+ Add ingredient</button>
+                      </div>
+                      <div className="ingredients-table-wrap">
+                        <table className="ingredients-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Unit</th>
+                              <th>Cost</th>
+                              <th aria-hidden>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredIngredients.map((ing) => (
+                              <tr key={ing.id}>
+                                <td>
+                                  <input placeholder="Name" value={ing.name} onChange={(e) => updateIngredient(ing.id, { name: e.target.value })} aria-label={`Name for ingredient ${ing.id}`} />
+                                </td>
+                                <td>
+                                  <select value={ing.unit_type} onChange={(e) => updateIngredient(ing.id, { unit_type: e.target.value as Ingredient['unit_type'] })} aria-label={`Unit for ${ing.name || 'ingredient'}`}>
+                                    <option value="oz">oz</option>
+                                    <option value="ml">ml</option>
+                                    <option value="grams">grams</option>
+                                    <option value="count">count</option>
+                                    <option value="lb">lb</option>
+                                    <option value="each">each</option>
+                                  </select>
+                                </td>
+                                <td>
+                                  <span className="input-with-prefix">
+                                    <span className="input-prefix">$</span>
+                                    <input
+                                      type="text"
+                                      inputMode="decimal"
+                                      placeholder="0.00"
+                                      value={editingNum[`cost-${ing.id}`] ?? (Number.isFinite(ing.cost_per_unit) ? String(ing.cost_per_unit) : '')}
+                                      onFocus={() => setEditingNum((e) => ({ ...e, [`cost-${ing.id}`]: Number.isFinite(ing.cost_per_unit) ? String(ing.cost_per_unit) : '' }))}
+                                      onChange={(e) => setEditingNum((prev) => ({ ...prev, [`cost-${ing.id}`]: e.target.value }))}
+                                      onBlur={() => {
+                                        const raw = editingNum[`cost-${ing.id}`];
+                                        if (raw == null) return;
+                                        const n = Math.max(0, parseFloat(raw) || 0);
+                                        updateIngredient(ing.id, { cost_per_unit: n });
+                                        setEditingNum((prev) => { const next = { ...prev }; delete next[`cost-${ing.id}`]; return next; });
+                                      }}
+                                      aria-label={`Cost per unit for ${ing.name || 'ingredient'}`}
+                                    />
+                                  </span>
+                                </td>
+                                <td>
+                                  <button type="button" className="btn btn-secondary btn-sm" onClick={() => removeIngredient(ing.id)}>Remove</button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        {filteredIngredients.length === 0 && (
+                          <p style={{ color: 'var(--text-muted)', padding: '0.75rem', margin: 0, fontSize: '0.9rem' }}>
+                            {ingredientFilter.trim() ? 'No ingredients match your search.' : 'No ingredients yet.'}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="sub-section">
+                      <h3>Recipe builder ({demoVariant === 'bar' ? 'pour cost & price per drink' : 'price & margin per item'})</h3>
+                      <p style={{ color: 'var(--text-muted)', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                        {demoVariant === 'bar'
+                          ? 'For each drink, add ingredients (e.g. oz tequila, oz lime) and quantity per serving. Set price and target margin per drink (or use the default above).'
+                          : 'For each menu item, add ingredients and quantity per serving. Set price and target margin per item (or use the default margin from above).'}
+                      </p>
+                      <div className="recipe-picker">
+                        <label htmlFor="recipe-picker-select" className="recipe-picker-label">Edit recipe for</label>
+                        <div className="recipe-picker-row">
+                          <select
+                            id="recipe-picker-select"
+                            value={selectedRecipeName}
+                            onChange={(e) => setSelectedRecipeName(e.target.value)}
+                            className="recipe-picker-select"
+                            aria-label="Choose menu item to edit"
+                          >
+                            {uniqueItemNames.slice(0, 100).map((name) => (
+                              <option key={name} value={name}>{name}</option>
+                            ))}
+                          </select>
+                          <div className="recipe-picker-nav">
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-sm"
+                              disabled={!selectedRecipeName || uniqueItemNames.indexOf(selectedRecipeName) <= 0}
+                              onClick={() => {
+                                const idx = uniqueItemNames.indexOf(selectedRecipeName);
+                                if (idx > 0) setSelectedRecipeName(uniqueItemNames[idx - 1]);
+                              }}
+                              aria-label="Previous item"
+                            >
+                              ←
+                            </button>
+                            <span className="recipe-picker-count">
+                              {selectedRecipeName ? `${uniqueItemNames.indexOf(selectedRecipeName) + 1} / ${uniqueItemNames.length}` : '—'}
+                            </span>
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-sm"
+                              disabled={!selectedRecipeName || uniqueItemNames.indexOf(selectedRecipeName) >= uniqueItemNames.length - 1}
+                              onClick={() => {
+                                const idx = uniqueItemNames.indexOf(selectedRecipeName);
+                                if (idx >= 0 && idx < uniqueItemNames.length - 1) setSelectedRecipeName(uniqueItemNames[idx + 1]);
+                              }}
+                              aria-label="Next item"
+                            >
+                              →
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="recipe-builder-single">
+              {selectedRecipeName && (() => {
+                const name = selectedRecipeName;
+                const recipe = getOrCreateRecipe(name);
+                const cost = itemCosts.get(name) ?? 0;
+                const price = menuPrices[name];
+                const targetMarginPct = menuMarginGoal[name] != null ? menuMarginGoal[name] * 100 : marginGoal * 100;
+                const currentMarginPct = price != null && price > 0 && cost >= 0
+                  ? ((price - cost) / price) * 100
+                  : null;
+                const atOrAboveTarget = currentMarginPct != null && currentMarginPct >= targetMarginPct;
+                return (
+                  <div key={name} className="recipe-builder-item">
+                    <div className="recipe-builder-item-header">
+                      <div className="recipe-builder-item-title-row">
+                        <strong>{name}</strong>
+                        <span className="recipe-builder-cost">
+                          Cost/serving: <strong>${cost.toFixed(2)}</strong>
+                        </span>
+                      </div>
+                      <div className="recipe-builder-item-controls">
+                        <label>
+                          <span>Price</span>
+                          <span className="input-prefix">$</span>
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            placeholder="0"
+                            value={editingNum[`price-${name}`] ?? (name in menuPrices && Number.isFinite(menuPrices[name]) ? String(menuPrices[name]) : '')}
+                            onFocus={() => setEditingNum((e) => ({ ...e, [`price-${name}`]: name in menuPrices && Number.isFinite(menuPrices[name]) ? String(menuPrices[name]) : '' }))}
+                            onChange={(e) => setEditingNum((prev) => ({ ...prev, [`price-${name}`]: e.target.value }))}
+                            onBlur={() => {
+                              const raw = editingNum[`price-${name}`];
+                              if (raw == null) return;
+                              if (raw.trim() === '') {
+                                setMenuPrices((p) => { const next = { ...p }; delete next[name]; return next; });
+                              } else {
+                                setMenuPrices((p) => ({ ...p, [name]: Math.max(0, parseFloat(raw) || 0) }));
+                              }
+                              setEditingNum((prev) => { const next = { ...prev }; delete next[`price-${name}`]; return next; });
+                            }}
+                            aria-label={`Price for ${name}`}
+                          />
+                        </label>
+                        <label>
+                          <span>Target</span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            className="recipe-builder-target-input"
+                            placeholder={String(Math.round(marginGoal * 100))}
+                            value={editingNum[`target-${name}`] ?? (menuMarginGoal[name] != null ? String(Math.round(menuMarginGoal[name] * 100)) : '')}
+                            onFocus={() => setEditingNum((e) => ({ ...e, [`target-${name}`]: menuMarginGoal[name] != null ? String(Math.round(menuMarginGoal[name] * 100)) : '' }))}
+                            onChange={(e) => setEditingNum((prev) => ({ ...prev, [`target-${name}`]: e.target.value }))}
+                            onBlur={() => {
+                              const raw = editingNum[`target-${name}`];
+                              if (raw == null) return;
+                              if (raw.trim() === '') {
+                                setMenuMarginGoal((m) => { const next = { ...m }; delete next[name]; return next; });
+                              } else {
+                                const pct = Math.max(0, Math.min(100, parseFloat(raw) || 0));
+                                setMenuMarginGoal((m) => ({ ...m, [name]: pct / 100 }));
+                              }
+                              setEditingNum((prev) => { const next = { ...prev }; delete next[`target-${name}`]; return next; });
+                            }}
+                            aria-label={`Target margin % for ${name}`}
+                          />
+                          <span className="input-prefix">%</span>
+                        </label>
+                        {currentMarginPct != null && (
+                          <span
+                            className={atOrAboveTarget ? 'badge badge-success' : 'badge badge-warn'}
+                            style={{ fontWeight: 600 }}
+                            title={atOrAboveTarget ? 'At or above target margin' : 'Below target margin'}
+                          >
+                            Margin {currentMarginPct.toFixed(1)}% {atOrAboveTarget ? '✓' : ''}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="recipe-builder-item-ingredients">
+                      <label className="recipe-builder-add-ingredient-label">
+                        <select
+                          className="recipe-builder-add-select"
+                          onChange={(e) => {
+                            const id = e.target.value;
+                            if (!id) return;
+                            const q = prompt('Quantity per serving?');
+                            if (q != null) addRecipeLine(name, id, parseFloat(q) || 0);
+                            e.target.value = '';
+                          }}
+                          aria-label={`Add ingredient to ${name}`}
+                        >
+                          <option value="">+ Add ingredient</option>
+                          {ingredients.filter((i) => i.name).map((i) => (
+                            <option key={i.id} value={i.id}>{i.name} ({i.unit_type})</option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                    <ul className="recipe-builder-lines">
+                      {recipe.lines.map((line) => {
+                        const ing = ingredients.find((i) => i.id === line.ingredient_id);
+                        return (
+                          <li key={line.ingredient_id} className="recipe-builder-line">
+                            <span>{ing?.name ?? '?'} × {line.quantity} {ing?.unit_type ?? ''}</span>
+                            <button type="button" className="btn btn-secondary" style={{ padding: '0.15rem 0.5rem', fontSize: '0.8rem' }} onClick={() => removeRecipeLine(name, line.ingredient_id)} aria-label={`Remove ${ing?.name ?? 'ingredient'} from recipe`}>Remove</button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                );
+              })()}
+              {!selectedRecipeName && uniqueItemNames.length > 0 && (
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Select a menu item above to edit its recipe.</p>
+              )}
+                      </div>
+                    </div>
+                  </div>
+                </details>
+              </section>
+            )}
+          </section>
+        </aside>
+
+        <main className="demo-main">
       {salesRecords.length > 0 && (
         <>
+          {!dashboardRevealed && (
+            <div className="demo-placeholder" aria-hidden>
+              <p className="demo-placeholder-text">Pick your menu type and scenario above, then click <strong>Show me the dashboard</strong> to see your margin report.</p>
+            </div>
+          )}
+          <div
+            ref={dashboardRef}
+            className={`demo-app-preview ${!dashboardRevealed ? 'demo-app-preview--hidden' : ''}`}
+            aria-hidden={!dashboardRevealed}
+          >
+            <header className="demo-app-header" role="banner">
+              <span className="demo-app-header-brand">Margin Insights</span>
+              <nav className="demo-app-header-nav" aria-label="App navigation">
+                <span className="demo-app-header-active">Dashboard</span>
+              </nav>
+            </header>
           <section className="dashboard-section">
             <h2>Margin &amp; profit</h2>
             <div className="tabs">
@@ -185,79 +643,66 @@ const DashboardPage = () => {
             {activeTab === 'leaks' && (
               <>
                 <div className="profit-leak-hero">
-                  <h3 className="profit-leak-hero-title">Where your money is leaking</h3>
+                  <h3 className="profit-leak-hero-title">Profit leak</h3>
                   {leakReport.items.length > 0 ? (
-                    <>
-                      <p className="profit-leak-hero-p">
-                        Right now you're leaving about <strong>${leakReport.summary.estimated_lost_profit_per_month.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> on the table every month — that's how much more you'd make if those items were priced to hit your {(marginGoal * 100).toFixed(0)}% target margin. {leakReport.summary.bottom_margin_skus} menu items are below target; you're selling them but not keeping enough of what you make.
-                      </p>
-                      <p className="profit-leak-hero-p">
-                        The numbers don't lie: the same figures you see in your <strong>Margins</strong> tab (revenue, cost per serving, margin %) add up to this leak. Below are the exact items and what we estimate you'd gain per month if you raised prices to hit your target. You can check the <strong>Price suggestions</strong> tab for the recommended price per item.
-                      </p>
-                      {leakReport.summary.strategic_candidate_count > 0 && (
-                        <p className="profit-leak-hero-p">
-                          Some of these are <strong>high-volume, low-margin</strong> items — they might be intentional loss leaders (e.g. drinks or sides that bring people in who then buy higher-margin items). We flag those separately so you can decide: fix the price or keep them as traffic drivers.
-                        </p>
-                      )}
-                      {leakReport.items.length > 0 && (
-                        <p className="profit-leak-hero-p profit-leak-hero-culprits">
-                          Biggest culprits: <strong>{leakReport.items.slice(0, 3).map((i) => `${i.item_name} ($${i.estimated_lost_profit_per_month.toFixed(0)}/mo)`).join(', ')}</strong>.
-                        </p>
-                      )}
-                    </>
+                    <div className="leak-stats-grid">
+                      <div className="leak-stat">
+                        <span className="leak-stat-value">${leakReport.summary.estimated_lost_profit_per_month.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                        <span className="leak-stat-label">Est. lost per month</span>
+                      </div>
+                      <div className="leak-stat">
+                        <span className="leak-stat-value">{leakReport.summary.bottom_margin_skus}</span>
+                        <span className="leak-stat-label">Items below {(marginGoal * 100).toFixed(0)}% target</span>
+                      </div>
+                      <div className="leak-stat">
+                        <span className="leak-stat-value">{leakReport.items.slice(0, 3).map((i) => `${i.item_name} ($${i.estimated_lost_profit_per_month.toFixed(0)})`).join(' · ')}</span>
+                        <span className="leak-stat-label">Top by lost $</span>
+                      </div>
+                    </div>
                   ) : (
-                    <p className="profit-leak-hero-p">
-                      No bottom-margin items in this period — your lowest-margin items are still above the threshold we use to flag leaks. Check the <strong>Margins</strong> and <strong>Quadrant</strong> views to see how everything stacks up.
-                    </p>
+                    <div className="leak-stats-grid">
+                      <div className="leak-stat">
+                        <span className="leak-stat-value">0</span>
+                        <span className="leak-stat-label">Items below target this period</span>
+                      </div>
+                    </div>
                   )}
                 </div>
                 {leakReport.items.length > 0 && (leakReport.summary.items_to_fix_count > 0 || leakReport.summary.strategic_candidate_count > 0) && (
-                  <div className="leak-high-level" aria-label="High-level picture of profit leak">
-                    <h4 className="leak-high-level-title">High-level picture</h4>
+                  <div className="leak-high-level" aria-label="Leak breakdown">
                     <div className="leak-high-level-grid">
                       <div className="leak-high-level-card leak-high-level-fix">
                         <span className="leak-high-level-value">${leakReport.summary.lost_from_items_to_fix.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                         <span className="leak-high-level-label">
-                          from {leakReport.summary.items_to_fix_count} item{leakReport.summary.items_to_fix_count !== 1 ? 's' : ''} to fix
+                          {leakReport.summary.items_to_fix_count} to fix
                           {(() => {
                             const toFixItems = leakReport.items.filter((i) => i.role === 'to_fix');
                             const names = toFixItems.map((i) => i.item_name);
                             if (names.length === 0) return null;
-                            if (names.length <= 3) return <>: <strong>{names.join(', ')}</strong></>;
-                            return <>: <strong>{names.slice(0, 2).join(', ')} and {names.length - 2} more</strong></>;
+                            if (names.length <= 3) return <>: {names.join(', ')}</>;
+                            return <>: {names.slice(0, 2).join(', ')} +{names.length - 2}</>;
                           })()}
                         </span>
-                        <span className="leak-high-level-desc">Raise prices to capture this; no strategic reason to keep these low.</span>
                       </div>
                       <div className="leak-high-level-card leak-high-level-strategic">
                         <span className="leak-high-level-value">${leakReport.summary.lost_from_strategic_candidates.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                         <span className="leak-high-level-label">
-                          from {leakReport.summary.strategic_candidate_count} possible loss leader{leakReport.summary.strategic_candidate_count !== 1 ? 's' : ''}
+                          {leakReport.summary.strategic_candidate_count} possible loss leader{leakReport.summary.strategic_candidate_count !== 1 ? 's' : ''}
                           {(() => {
                             const strategicItems = leakReport.items.filter((i) => i.role === 'strategic_candidate');
                             const names = strategicItems.map((i) => i.item_name);
                             if (names.length === 0) return null;
-                            if (names.length <= 3) return <>: <strong>{names.join(', ')}</strong></>;
-                            return <>: <strong>{names.slice(0, 2).join(', ')} and {names.length - 2} more</strong></>;
+                            if (names.length <= 3) return <>: {names.join(', ')}</>;
+                            return <>: {names.slice(0, 2).join(', ')} +{names.length - 2}</>;
                           })()}
                         </span>
-                        <span className="leak-high-level-desc">High volume, low margin — OK if they bring in customers who buy high-margin items; otherwise consider raising.</span>
                       </div>
                     </div>
                   </div>
                 )}
                 {leakReport.items.length > 0 && (
                   <>
-                    <div className="actionable-strip">
-                      <strong>Do this:</strong>{' '}
-                      {leakReport.summary.items_to_fix_count > 0
-                        ? `Raise prices on the ${leakReport.summary.items_to_fix_count} "to fix" item${leakReport.summary.items_to_fix_count !== 1 ? 's' : ''} below to capture about $${leakReport.summary.lost_from_items_to_fix.toFixed(0)}/month.`
-                        : 'Review the items below.'}
-                      {leakReport.summary.strategic_candidate_count > 0 && (
-                        <> The {leakReport.summary.strategic_candidate_count} possible loss leader{leakReport.summary.strategic_candidate_count !== 1 ? 's' : ''} are flagged — keep them low only if they drive other sales.</>
-                      )}
-                      {' '}Use the <strong>Price suggestions</strong> tab for exact numbers.
-                    </div>
+                    <p className="leak-next-step">Price suggestions tab → recommended prices per item.</p>
                     <LostProfitBarChart items={leakReport.items} />
                   </>
                 )}
@@ -413,7 +858,7 @@ const DashboardPage = () => {
                           </tbody>
                         </table>
                       </div>
-                      <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.75rem' }}>
+                      <p className="demo-pricing-note">
                         Per-item target margin when set in recipe builder; otherwise default {(marginGoal * 100).toFixed(0)}%. <strong>Below target:</strong> suggested price and % increase to get there (volume unchanged). <strong>At/above target:</strong> no change; &quot;Above by X%&quot; = margin above target. The <strong>12% cap</strong> limits the &quot;first step&quot; suggested increase so we don&apos;t recommend a 40% hike in one go; the <strong>lost profit</strong> number above is the full gap to your {(marginGoal * 100).toFixed(0)}% target (no cap). Items needing &gt;15% increase are flagged for caution.
                       </p>
                     </>
@@ -449,186 +894,37 @@ const DashboardPage = () => {
             )}
           </section>
 
-          {/* Raw data: one collapsible at the bottom */}
-          <section className="dashboard-section collapsible raw-data-section">
-            <details>
-              <summary>Wanna mess with the raw data and see the charts change?</summary>
-              <div className="collapsible-body">
-                <div className="sub-section">
-                  <h3>Defaults (target margin)</h3>
-                  <p style={{ color: 'var(--text-muted)', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
-                    Default target margin is used for all menu items unless you set a per-item margin in the recipe builder.
-                  </p>
-                  <div className="form-row">
-                    <label htmlFor="default-margin">Default target margin (%)</label>
-                    <input
-                      id="default-margin"
-                      type="number"
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={marginGoal * 100}
-                      onChange={(e) => setMarginGoal(Math.max(0, Math.min(1, (parseFloat(e.target.value) || 0) / 100)))}
-                      style={{ width: '5rem' }}
-                    />
-                  </div>
-                </div>
-                <div className="sub-section">
-                  <h3>Ingredients ({ingredients.length})</h3>
-                  <p style={{ color: 'var(--text-muted)', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
-                    Add ingredients with cost per unit. Then assign them to menu items in Recipe builder.
-                  </p>
-                  {ingredients.map((ing) => (
-                    <div key={ing.id} className="form-row">
-                      <input placeholder="Name" value={ing.name} onChange={(e) => updateIngredient(ing.id, { name: e.target.value })} />
-                      <select value={ing.unit_type} onChange={(e) => updateIngredient(ing.id, { unit_type: e.target.value as Ingredient['unit_type'] })}>
-                        <option value="oz">oz</option>
-                        <option value="ml">ml</option>
-                        <option value="grams">grams</option>
-                        <option value="count">count</option>
-                        <option value="lb">lb</option>
-                        <option value="each">each</option>
-                      </select>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>$</span>
-                        <input type="number" step="0.01" min={0} placeholder="0.00" value={ing.cost_per_unit || ''} onChange={(e) => updateIngredient(ing.id, { cost_per_unit: parseFloat(e.target.value) || 0 })} style={{ width: '5rem' }} />
-                      </span>
-                      <button type="button" className="btn btn-secondary" onClick={() => removeIngredient(ing.id)}>Remove</button>
-                    </div>
-                  ))}
-                  <button type="button" className="btn btn-primary" onClick={addIngredient}>+ Add ingredient</button>
-                </div>
-                <div className="sub-section">
-                  <h3>Recipe builder (price &amp; margin per item)</h3>
-                  <p style={{ color: 'var(--text-muted)', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
-                    For each menu item, add ingredients and quantity per serving. Set price and target margin per item (or use the default margin from above).
-                  </p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {uniqueItemNames.slice(0, 30).map((name) => {
-                const recipe = getOrCreateRecipe(name);
-                const cost = itemCosts.get(name) ?? 0;
-                const price = menuPrices[name];
-                const targetMarginPct = menuMarginGoal[name] != null ? menuMarginGoal[name] * 100 : marginGoal * 100;
-                const currentMarginPct = price != null && price > 0 && cost >= 0
-                  ? ((price - cost) / price) * 100
-                  : null;
-                const atOrAboveTarget = currentMarginPct != null && currentMarginPct >= targetMarginPct;
-                return (
-                  <div key={name} className="recipe-builder-item">
-                    <div className="recipe-builder-item-header">
-                      <div className="recipe-builder-item-title-row">
-                        <strong>{name}</strong>
-                        <span className="recipe-builder-cost">
-                          Cost/serving: <strong>${cost.toFixed(2)}</strong>
-                        </span>
-                      </div>
-                      <div className="recipe-builder-item-controls">
-                        <label>
-                          <span>Price</span>
-                          <span className="input-prefix">$</span>
-                          <input
-                            type="number"
-                            min={0}
-                            step={0.5}
-                            value={name in menuPrices ? menuPrices[name] : ''}
-                            onChange={(e) => {
-                              const raw = e.target.value;
-                              if (raw === '') {
-                                setMenuPrices((p) => {
-                                  const next = { ...p };
-                                  delete next[name];
-                                  return next;
-                                });
-                                return;
-                              }
-                              setMenuPrices((p) => ({ ...p, [name]: parseFloat(raw) || 0 }));
-                            }}
-                            placeholder="0"
-                            aria-label={`Price for ${name}`}
-                          />
-                        </label>
-                        <label>
-                          <span>Target</span>
-                          <input
-                            type="number"
-                            className="recipe-builder-target-input"
-                            min={0}
-                            max={100}
-                            step={1}
-                            value={menuMarginGoal[name] != null ? Math.round(menuMarginGoal[name] * 100) : ''}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              if (v === '') {
-                                setMenuMarginGoal((m) => {
-                                  const next = { ...m };
-                                  delete next[name];
-                                  return next;
-                                });
-                                return;
-                              }
-                              const pct = Math.max(0, Math.min(100, parseFloat(v) || 0));
-                              setMenuMarginGoal((m) => ({ ...m, [name]: pct / 100 }));
-                            }}
-                            placeholder={String(Math.round(marginGoal * 100))}
-                            aria-label={`Target margin % for ${name}`}
-                          />
-                          <span className="input-prefix">%</span>
-                        </label>
-                        {currentMarginPct != null && (
-                          <span
-                            className={atOrAboveTarget ? 'badge badge-success' : 'badge badge-warn'}
-                            style={{ fontWeight: 600 }}
-                            title={atOrAboveTarget ? 'At or above target margin' : 'Below target margin'}
-                          >
-                            Margin {currentMarginPct.toFixed(1)}% {atOrAboveTarget ? '✓' : ''}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="recipe-builder-item-ingredients">
-                      <label className="recipe-builder-add-ingredient-label">
-                        <select
-                          className="recipe-builder-add-select"
-                          onChange={(e) => {
-                            const id = e.target.value;
-                            if (!id) return;
-                            const q = prompt('Quantity per serving?');
-                            if (q != null) addRecipeLine(name, id, parseFloat(q) || 0);
-                            e.target.value = '';
-                          }}
-                          aria-label={`Add ingredient to ${name}`}
-                        >
-                          <option value="">+ Add ingredient</option>
-                          {ingredients.filter((i) => i.name).map((i) => (
-                            <option key={i.id} value={i.id}>{i.name} ({i.unit_type})</option>
-                          ))}
-                        </select>
-                      </label>
-                    </div>
-                    <ul className="recipe-builder-lines">
-                      {recipe.lines.map((line) => {
-                        const ing = ingredients.find((i) => i.id === line.ingredient_id);
-                        return (
-                          <li key={line.ingredient_id} className="recipe-builder-line">
-                            <span>{ing?.name ?? '?'} × {line.quantity} {ing?.unit_type ?? ''}</span>
-                            <button type="button" className="btn btn-secondary" style={{ padding: '0.15rem 0.5rem', fontSize: '0.8rem' }} onClick={() => removeRecipeLine(name, line.ingredient_id)} aria-label={`Remove ${ing?.name ?? 'ingredient'} from recipe`}>Remove</button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                );
-              })}
-              {uniqueItemNames.length > 30 && <p style={{ color: 'var(--text-muted)' }}>Showing first 30 items. Add recipes for the rest the same way.</p>}
-                  </div>
-                </div>
-              </div>
-            </details>
-          </section>
+            <footer className="demo-app-footer" role="contentinfo">
+              <span>Margin Insights — Dashboard</span>
+            </footer>
+          </div>
+
+          <footer className="demo-footer section">
+            <p className="demo-footer-text">
+              When you&apos;re ready for your own data, <Link href="/#pricing" className="demo-footer-cta">see pricing</Link> — $249/month or $2,000 once for lifetime access (limited offer).
+            </p>
+          </footer>
         </>
       )}
+        </main>
+      </div>
     </div>
   );
 };
 
-export default DashboardPage;
+const DashboardFallback = () => (
+  <div className="landing demo-page">
+    <LandingHeader />
+    <div className="demo-layout" style={{ padding: '2rem', textAlign: 'center' }}>
+      <p>Loading demo…</p>
+    </div>
+  </div>
+);
+
+export default function DemoDashboardPage() {
+  return (
+    <Suspense fallback={<DashboardFallback />}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
