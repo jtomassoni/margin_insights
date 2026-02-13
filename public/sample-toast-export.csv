@@ -1,0 +1,367 @@
+Location,Order Id,Order #,Order Date,Check Id,Server,Menu Item,Menu Group,Sales Category,Qty,Gross Price,Discnt,Net Price,Net Amount,Tax,Void?
+Main Dining,8001,8001,02/02/2026 11:32 AM,8001,Victoria,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8001,8001,02/02/2026 11:32 AM,8001,Victoria,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8001,8001,02/02/2026 11:32 AM,8001,Victoria,Pilsner Draft,Beverages,Alcohol,1,6.50,0.00,6.50,6.50,0.52,False
+Main Dining,8001,8001,02/02/2026 11:32 AM,8001,Victoria,IPA Draft,Beverages,Alcohol,2,7.00,0.00,7.00,14.00,1.12,False
+Main Dining,8001,8001,02/02/2026 11:32 AM,8001,Victoria,Soda,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8001,8001,02/02/2026 11:32 AM,8001,Victoria,Truffle Fries,Appetizers,Food,1,9.00,0.00,9.00,9.00,0.72,False
+Main Dining,8002,8002,02/02/2026 12:15 PM,8002,Victoria,Salmon Plate,Entrees,Food,1,25.00,0.00,25.00,25.00,2.00,False
+Main Dining,8002,8002,02/02/2026 12:15 PM,8002,Victoria,Veggie Bowl,Entrees,Food,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8002,8002,02/02/2026 12:15 PM,8002,Victoria,IPA Draft,Beverages,Alcohol,1,7.00,0.00,7.00,7.00,0.56,False
+Main Dining,8002,8002,02/02/2026 12:15 PM,8002,Victoria,Old Fashioned,Beverages,Alcohol,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8002,8002,02/02/2026 12:15 PM,8002,Victoria,NA Beer,Beverages,NonAlcohol,1,5.00,0.00,5.00,5.00,0.40,False
+Main Dining,8002,8002,02/02/2026 12:15 PM,8002,Victoria,Wings,Appetizers,Food,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8003,8003,02/02/2026 12:48 PM,8003,Susan,Chicken Sandwich,Entrees,Food,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8003,8003,02/02/2026 12:48 PM,8003,Susan,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8003,8003,02/02/2026 12:48 PM,8003,Susan,Cabernet Glass,Beverages,Alcohol,2,11.00,0.00,11.00,22.00,1.76,False
+Main Dining,8003,8003,02/02/2026 12:48 PM,8003,Susan,House Margarita,Beverages,Alcohol,1,12.00,0.00,12.00,12.00,0.96,False
+Main Dining,8003,8003,02/02/2026 12:48 PM,8003,Susan,Lemonade,Beverages,NonAlcohol,1,4.00,0.00,4.00,4.00,0.32,False
+Main Dining,8003,8003,02/02/2026 12:48 PM,8003,Susan,Chips & Salsa,Appetizers,Food,1,8.00,0.00,8.00,8.00,0.64,False
+Main Dining,8004,8004,02/02/2026 1:22 PM,8004,Victoria,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8004,8004,02/02/2026 1:22 PM,8004,Victoria,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8004,8004,02/02/2026 1:22 PM,8004,Victoria,House Margarita,Beverages,Alcohol,2,12.00,0.00,12.00,24.00,1.92,False
+Main Dining,8004,8004,02/02/2026 1:22 PM,8004,Victoria,IPA Draft,Beverages,Alcohol,1,7.00,0.00,7.00,7.00,0.56,False
+Main Dining,8004,8004,02/02/2026 1:22 PM,8004,Victoria,Iced Tea,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8004,8004,02/02/2026 1:22 PM,8004,Victoria,Nachos,Appetizers,Food,1,13.00,0.00,13.00,13.00,1.04,False
+Main Dining,8005,8005,02/02/2026 2:05 PM,8005,Victoria,Smash Burger,Entrees,Food,1,16.00,0.00,16.00,16.00,1.28,False
+Main Dining,8005,8005,02/02/2026 2:05 PM,8005,Victoria,BBQ Ribs,Entrees,Food,1,26.00,0.00,26.00,26.00,2.08,False
+Main Dining,8005,8005,02/02/2026 2:05 PM,8005,Victoria,Espresso Martini,Beverages,Alcohol,2,15.00,0.00,15.00,30.00,2.40,False
+Main Dining,8005,8005,02/02/2026 2:05 PM,8005,Victoria,House Margarita,Beverages,Alcohol,2,12.00,0.00,12.00,24.00,1.92,False
+Main Dining,8005,8005,02/02/2026 2:05 PM,8005,Victoria,Soda,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8005,8005,02/02/2026 2:05 PM,8005,Victoria,Mozz Sticks,Appetizers,Food,1,10.00,0.00,10.00,10.00,0.80,False
+Main Dining,8006,8006,02/02/2026 6:12 PM,8006,Susan,Veggie Bowl,Entrees,Food,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8006,8006,02/02/2026 6:12 PM,8006,Susan,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8006,8006,02/02/2026 6:12 PM,8006,Susan,Old Fashioned,Beverages,Alcohol,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8006,8006,02/02/2026 6:12 PM,8006,Susan,Pilsner Draft,Beverages,Alcohol,2,6.50,0.00,6.50,13.00,1.04,False
+Main Dining,8006,8006,02/02/2026 6:12 PM,8006,Susan,NA Beer,Beverages,NonAlcohol,1,5.00,0.00,5.00,5.00,0.40,False
+Main Dining,8006,8006,02/02/2026 6:12 PM,8006,Susan,Wings,Appetizers,Food,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8007,8007,02/02/2026 6:45 PM,8007,Victoria,Smash Burger,Entrees,Food,1,16.00,0.00,16.00,16.00,1.28,False
+Main Dining,8007,8007,02/02/2026 6:45 PM,8007,Victoria,Chicken Sandwich,Entrees,Food,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8007,8007,02/02/2026 6:45 PM,8007,Victoria,Espresso Martini,Beverages,Alcohol,2,15.00,0.00,15.00,30.00,2.40,False
+Main Dining,8007,8007,02/02/2026 6:45 PM,8007,Victoria,IPA Draft,Beverages,Alcohol,1,7.00,0.00,7.00,7.00,0.56,False
+Main Dining,8007,8007,02/02/2026 6:45 PM,8007,Victoria,Iced Tea,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8007,8007,02/02/2026 6:45 PM,8007,Victoria,Truffle Fries,Appetizers,Food,1,9.00,0.00,9.00,9.00,0.72,False
+Main Dining,8008,8008,02/02/2026 7:30 PM,8008,Susan,Salmon Plate,Entrees,Food,1,25.00,0.00,25.00,25.00,2.00,False
+Main Dining,8008,8008,02/02/2026 7:30 PM,8008,Susan,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8008,8008,02/02/2026 7:30 PM,8008,Susan,House Margarita,Beverages,Alcohol,1,12.00,0.00,12.00,12.00,0.96,False
+Main Dining,8008,8008,02/02/2026 7:30 PM,8008,Susan,Cabernet Glass,Beverages,Alcohol,2,11.00,0.00,11.00,22.00,1.76,False
+Main Dining,8008,8008,02/02/2026 7:30 PM,8008,Susan,Lemonade,Beverages,NonAlcohol,1,4.00,0.00,4.00,4.00,0.32,False
+Main Dining,8008,8008,02/02/2026 7:30 PM,8008,Susan,Nachos,Appetizers,Food,1,13.00,0.00,13.00,13.00,1.04,False
+Main Dining,8009,8009,02/02/2026 8:15 PM,8009,Beth,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8009,8009,02/02/2026 8:15 PM,8009,Beth,Veggie Bowl,Entrees,Food,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8009,8009,02/02/2026 8:15 PM,8009,Beth,Pilsner Draft,Beverages,Alcohol,2,6.50,0.00,6.50,13.00,1.04,False
+Main Dining,8009,8009,02/02/2026 8:15 PM,8009,Beth,IPA Draft,Beverages,Alcohol,1,7.00,0.00,7.00,7.00,0.56,False
+Main Dining,8009,8009,02/02/2026 8:15 PM,8009,Beth,Soda,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8009,8009,02/02/2026 8:15 PM,8009,Beth,Chips & Salsa,Appetizers,Food,1,8.00,0.00,8.00,8.00,0.64,False
+Main Dining,8010,8010,02/02/2026 9:00 PM,8010,Susan,BBQ Ribs,Entrees,Food,1,26.00,0.00,26.00,26.00,2.08,False
+Main Dining,8010,8010,02/02/2026 9:00 PM,8010,Susan,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8010,8010,02/02/2026 9:00 PM,8010,Susan,Old Fashioned,Beverages,Alcohol,2,14.00,0.00,14.00,28.00,2.24,False
+Main Dining,8010,8010,02/02/2026 9:00 PM,8010,Susan,House Margarita,Beverages,Alcohol,1,12.00,0.00,12.00,12.00,0.96,False
+Main Dining,8010,8010,02/02/2026 9:00 PM,8010,Susan,Iced Tea,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8010,8010,02/02/2026 9:00 PM,8010,Susan,Wings,Appetizers,Food,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8011,8011,02/03/2026 11:45 AM,8011,Beth,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8011,8011,02/03/2026 11:45 AM,8011,Beth,Smash Burger,Entrees,Food,1,16.00,0.00,16.00,16.00,1.28,False
+Main Dining,8011,8011,02/03/2026 11:45 AM,8011,Beth,Old Fashioned,Beverages,Alcohol,2,14.00,0.00,14.00,28.00,2.24,False
+Main Dining,8011,8011,02/03/2026 11:45 AM,8011,Beth,IPA Draft,Beverages,Alcohol,1,7.00,0.00,7.00,7.00,0.56,False
+Main Dining,8011,8011,02/03/2026 11:45 AM,8011,Beth,Lemonade,Beverages,NonAlcohol,1,4.00,0.00,4.00,4.00,0.32,False
+Main Dining,8011,8011,02/03/2026 11:45 AM,8011,Beth,Mozz Sticks,Appetizers,Food,1,10.00,0.00,10.00,10.00,0.80,False
+Main Dining,8012,8012,02/03/2026 12:20 PM,8012,Susan,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8012,8012,02/03/2026 12:20 PM,8012,Susan,Veggie Bowl,Entrees,Food,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8012,8012,02/03/2026 12:20 PM,8012,Susan,Cabernet Glass,Beverages,Alcohol,2,11.00,0.00,11.00,22.00,1.76,False
+Main Dining,8012,8012,02/03/2026 12:20 PM,8012,Susan,Pilsner Draft,Beverages,Alcohol,1,6.50,0.00,6.50,6.50,0.52,False
+Main Dining,8012,8012,02/03/2026 12:20 PM,8012,Susan,NA Beer,Beverages,NonAlcohol,1,5.00,0.00,5.00,5.00,0.40,False
+Main Dining,8012,8012,02/03/2026 12:20 PM,8012,Susan,Chips & Salsa,Appetizers,Food,1,8.00,0.00,8.00,8.00,0.64,False
+Main Dining,8013,8013,02/03/2026 1:00 PM,8013,Victoria,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8013,8013,02/03/2026 1:00 PM,8013,Victoria,Chicken Sandwich,Entrees,Food,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8013,8013,02/03/2026 1:00 PM,8013,Victoria,House Margarita,Beverages,Alcohol,2,12.00,0.00,12.00,24.00,1.92,False
+Main Dining,8013,8013,02/03/2026 1:00 PM,8013,Victoria,IPA Draft,Beverages,Alcohol,1,7.00,0.00,7.00,7.00,0.56,False
+Main Dining,8013,8013,02/03/2026 1:00 PM,8013,Victoria,Soda,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8013,8013,02/03/2026 1:00 PM,8013,Victoria,Truffle Fries,Appetizers,Food,1,9.00,0.00,9.00,9.00,0.72,False
+Main Dining,8014,8014,02/03/2026 6:30 PM,8014,Susan,BBQ Ribs,Entrees,Food,1,26.00,0.00,26.00,26.00,2.08,False
+Main Dining,8014,8014,02/03/2026 6:30 PM,8014,Susan,Smash Burger,Entrees,Food,1,16.00,0.00,16.00,16.00,1.28,False
+Main Dining,8014,8014,02/03/2026 6:30 PM,8014,Susan,Espresso Martini,Beverages,Alcohol,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8014,8014,02/03/2026 6:30 PM,8014,Susan,Old Fashioned,Beverages,Alcohol,2,14.00,0.00,14.00,28.00,2.24,False
+Main Dining,8014,8014,02/03/2026 6:30 PM,8014,Susan,Iced Tea,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8014,8014,02/03/2026 6:30 PM,8014,Susan,Nachos,Appetizers,Food,1,13.00,0.00,13.00,13.00,1.04,False
+Main Dining,8015,8015,02/03/2026 7:15 PM,8015,Susan,Salmon Plate,Entrees,Food,1,25.00,0.00,25.00,25.00,2.00,False
+Main Dining,8015,8015,02/03/2026 7:15 PM,8015,Susan,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8015,8015,02/03/2026 7:15 PM,8015,Susan,Pilsner Draft,Beverages,Alcohol,2,6.50,0.00,6.50,13.00,1.04,False
+Main Dining,8015,8015,02/03/2026 7:15 PM,8015,Susan,IPA Draft,Beverages,Alcohol,1,7.00,0.00,7.00,7.00,0.56,False
+Main Dining,8015,8015,02/03/2026 7:15 PM,8015,Susan,Lemonade,Beverages,NonAlcohol,1,4.00,0.00,4.00,4.00,0.32,False
+Main Dining,8015,8015,02/03/2026 7:15 PM,8015,Susan,Wings,Appetizers,Food,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8040,8040,02/03/2026 12:55 PM,8040,Victoria,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8040,8040,02/03/2026 12:55 PM,8040,Victoria,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8040,8040,02/03/2026 12:55 PM,8040,Victoria,Cabernet Glass,Beverages,Alcohol,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8040,8040,02/03/2026 12:55 PM,8040,Victoria,Iced Tea,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8040,8040,02/03/2026 12:55 PM,8040,Victoria,Nachos,Appetizers,Food,1,13.00,0.00,13.00,13.00,1.04,False
+Main Dining,8041,8041,02/03/2026 2:10 PM,8041,Beth,Salmon Plate,Entrees,Food,1,25.00,0.00,25.00,25.00,2.00,False
+Main Dining,8041,8041,02/03/2026 2:10 PM,8041,Beth,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8041,8041,02/03/2026 2:10 PM,8041,Beth,House Margarita,Beverages,Alcohol,2,12.00,0.00,12.00,24.00,1.92,False
+Main Dining,8041,8041,02/03/2026 2:10 PM,8041,Beth,Soda,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8041,8041,02/03/2026 2:10 PM,8041,Beth,Truffle Fries,Appetizers,Food,1,9.00,0.00,9.00,9.00,0.72,False
+Main Dining,8042,8042,02/03/2026 6:00 PM,8042,Susan,BBQ Ribs,Entrees,Food,1,26.00,0.00,26.00,26.00,2.08,False
+Main Dining,8042,8042,02/03/2026 6:00 PM,8042,Susan,Veggie Bowl,Entrees,Food,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8042,8042,02/03/2026 6:00 PM,8042,Susan,Old Fashioned,Beverages,Alcohol,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8042,8042,02/03/2026 6:00 PM,8042,Susan,Pilsner Draft,Beverages,Alcohol,2,6.50,0.00,6.50,13.00,1.04,False
+Main Dining,8042,8042,02/03/2026 6:00 PM,8042,Susan,Chips & Salsa,Appetizers,Food,1,8.00,0.00,8.00,8.00,0.64,False
+Main Dining,8043,8043,02/03/2026 7:45 PM,8043,Victoria,Smash Burger,Entrees,Food,1,16.00,0.00,16.00,16.00,1.28,False
+Main Dining,8043,8043,02/03/2026 7:45 PM,8043,Victoria,Chicken Sandwich,Entrees,Food,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8043,8043,02/03/2026 7:45 PM,8043,Victoria,Espresso Martini,Beverages,Alcohol,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8043,8043,02/03/2026 7:45 PM,8043,Victoria,IPA Draft,Beverages,Alcohol,1,7.00,0.00,7.00,7.00,0.56,False
+Main Dining,8043,8043,02/03/2026 7:45 PM,8043,Victoria,Wings,Appetizers,Food,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8044,8044,02/03/2026 8:30 PM,8044,Beth,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8044,8044,02/03/2026 8:30 PM,8044,Beth,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8044,8044,02/03/2026 8:30 PM,8044,Beth,Cabernet Glass,Beverages,Alcohol,2,11.00,0.00,11.00,22.00,1.76,False
+Main Dining,8044,8044,02/03/2026 8:30 PM,8044,Beth,Lemonade,Beverages,NonAlcohol,1,4.00,0.00,4.00,4.00,0.32,False
+Main Dining,8044,8044,02/03/2026 8:30 PM,8044,Beth,Mozz Sticks,Appetizers,Food,1,10.00,0.00,10.00,10.00,0.80,False
+Main Dining,8016,8016,02/04/2026 11:30 AM,8016,Victoria,Smash Burger,Entrees,Food,1,16.00,0.00,16.00,16.00,1.28,False
+Main Dining,8016,8016,02/04/2026 11:30 AM,8016,Victoria,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8016,8016,02/04/2026 11:30 AM,8016,Victoria,House Margarita,Beverages,Alcohol,2,12.00,0.00,12.00,24.00,1.92,False
+Main Dining,8016,8016,02/04/2026 11:30 AM,8016,Victoria,Soda,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8016,8016,02/04/2026 11:30 AM,8016,Victoria,Truffle Fries,Appetizers,Food,1,9.00,0.00,9.00,9.00,0.72,False
+Main Dining,8017,8017,02/04/2026 12:45 PM,8017,Beth,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8017,8017,02/04/2026 12:45 PM,8017,Beth,Veggie Bowl,Entrees,Food,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8017,8017,02/04/2026 12:45 PM,8017,Beth,Pilsner Draft,Beverages,Alcohol,2,6.50,0.00,6.50,13.00,1.04,False
+Main Dining,8017,8017,02/04/2026 12:45 PM,8017,Beth,Lemonade,Beverages,NonAlcohol,1,4.00,0.00,4.00,4.00,0.32,False
+Main Dining,8017,8017,02/04/2026 12:45 PM,8017,Beth,Chips & Salsa,Appetizers,Food,1,8.00,0.00,8.00,8.00,0.64,False
+Main Dining,8018,8018,02/04/2026 1:30 PM,8018,Susan,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8018,8018,02/04/2026 1:30 PM,8018,Susan,IPA Draft,Beverages,Alcohol,2,7.00,0.00,7.00,14.00,1.12,False
+Main Dining,8018,8018,02/04/2026 1:30 PM,8018,Susan,Iced Tea,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8018,8018,02/04/2026 1:30 PM,8018,Susan,Wings,Appetizers,Food,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8019,8019,02/04/2026 6:45 PM,8019,Victoria,Salmon Plate,Entrees,Food,1,25.00,0.00,25.00,25.00,2.00,False
+Main Dining,8019,8019,02/04/2026 6:45 PM,8019,Victoria,Chicken Sandwich,Entrees,Food,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8019,8019,02/04/2026 6:45 PM,8019,Victoria,Cabernet Glass,Beverages,Alcohol,2,11.00,0.00,11.00,22.00,1.76,False
+Main Dining,8019,8019,02/04/2026 6:45 PM,8019,Victoria,NA Beer,Beverages,NonAlcohol,1,5.00,0.00,5.00,5.00,0.40,False
+Main Dining,8019,8019,02/04/2026 6:45 PM,8019,Victoria,Nachos,Appetizers,Food,1,13.00,0.00,13.00,13.00,1.04,False
+Main Dining,8020,8020,02/04/2026 7:20 PM,8020,Susan,BBQ Ribs,Entrees,Food,1,26.00,0.00,26.00,26.00,2.08,False
+Main Dining,8020,8020,02/04/2026 7:20 PM,8020,Susan,Espresso Martini,Beverages,Alcohol,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8020,8020,02/04/2026 7:20 PM,8020,Susan,Old Fashioned,Beverages,Alcohol,2,14.00,0.00,14.00,28.00,2.24,False
+Main Dining,8020,8020,02/04/2026 7:20 PM,8020,Susan,Soda,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8020,8020,02/04/2026 7:20 PM,8020,Susan,Mozz Sticks,Appetizers,Food,1,10.00,0.00,10.00,10.00,0.80,False
+Main Dining,8045,8045,02/04/2026 11:05 AM,8045,Beth,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8045,8045,02/04/2026 11:05 AM,8045,Beth,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8045,8045,02/04/2026 11:05 AM,8045,Beth,IPA Draft,Beverages,Alcohol,2,7.00,0.00,7.00,14.00,1.12,False
+Main Dining,8045,8045,02/04/2026 11:05 AM,8045,Beth,NA Beer,Beverages,NonAlcohol,1,5.00,0.00,5.00,5.00,0.40,False
+Main Dining,8045,8045,02/04/2026 11:05 AM,8045,Beth,Chips & Salsa,Appetizers,Food,1,8.00,0.00,8.00,8.00,0.64,False
+Main Dining,8046,8046,02/04/2026 12:20 PM,8046,Victoria,Salmon Plate,Entrees,Food,1,25.00,0.00,25.00,25.00,2.00,False
+Main Dining,8046,8046,02/04/2026 12:20 PM,8046,Victoria,Veggie Bowl,Entrees,Food,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8046,8046,02/04/2026 12:20 PM,8046,Victoria,House Margarita,Beverages,Alcohol,1,12.00,0.00,12.00,12.00,0.96,False
+Main Dining,8046,8046,02/04/2026 12:20 PM,8046,Victoria,Lemonade,Beverages,NonAlcohol,1,4.00,0.00,4.00,4.00,0.32,False
+Main Dining,8046,8046,02/04/2026 12:20 PM,8046,Victoria,Wings,Appetizers,Food,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8047,8047,02/04/2026 2:00 PM,8047,Susan,Chicken Sandwich,Entrees,Food,2,15.00,0.00,15.00,30.00,2.40,False
+Main Dining,8047,8047,02/04/2026 2:00 PM,8047,Susan,Old Fashioned,Beverages,Alcohol,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8047,8047,02/04/2026 2:00 PM,8047,Susan,Pilsner Draft,Beverages,Alcohol,1,6.50,0.00,6.50,6.50,0.52,False
+Main Dining,8047,8047,02/04/2026 2:00 PM,8047,Susan,Truffle Fries,Appetizers,Food,1,9.00,0.00,9.00,9.00,0.72,False
+Main Dining,8048,8048,02/04/2026 6:20 PM,8048,Beth,BBQ Ribs,Entrees,Food,1,26.00,0.00,26.00,26.00,2.08,False
+Main Dining,8048,8048,02/04/2026 6:20 PM,8048,Beth,Smash Burger,Entrees,Food,1,16.00,0.00,16.00,16.00,1.28,False
+Main Dining,8048,8048,02/04/2026 6:20 PM,8048,Beth,Espresso Martini,Beverages,Alcohol,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8048,8048,02/04/2026 6:20 PM,8048,Beth,Cabernet Glass,Beverages,Alcohol,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8048,8048,02/04/2026 6:20 PM,8048,Beth,Nachos,Appetizers,Food,1,13.00,0.00,13.00,13.00,1.04,False
+Main Dining,8049,8049,02/04/2026 8:00 PM,8049,Victoria,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8049,8049,02/04/2026 8:00 PM,8049,Victoria,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8049,8049,02/04/2026 8:00 PM,8049,Victoria,House Margarita,Beverages,Alcohol,2,12.00,0.00,12.00,24.00,1.92,False
+Main Dining,8049,8049,02/04/2026 8:00 PM,8049,Victoria,Iced Tea,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8049,8049,02/04/2026 8:00 PM,8049,Victoria,Mozz Sticks,Appetizers,Food,1,10.00,0.00,10.00,10.00,0.80,False
+Main Dining,8021,8021,02/05/2026 11:50 AM,8021,Beth,Salmon Plate,Entrees,Food,1,25.00,0.00,25.00,25.00,2.00,False
+Main Dining,8021,8021,02/05/2026 11:50 AM,8021,Beth,Veggie Bowl,Entrees,Food,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8021,8021,02/05/2026 11:50 AM,8021,Beth,Old Fashioned,Beverages,Alcohol,2,14.00,0.00,14.00,28.00,2.24,False
+Main Dining,8021,8021,02/05/2026 11:50 AM,8021,Beth,IPA Draft,Beverages,Alcohol,1,7.00,0.00,7.00,7.00,0.56,False
+Main Dining,8021,8021,02/05/2026 11:50 AM,8021,Beth,Lemonade,Beverages,NonAlcohol,1,4.00,0.00,4.00,4.00,0.32,False
+Main Dining,8021,8021,02/05/2026 11:50 AM,8021,Beth,Wings,Appetizers,Food,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8022,8022,02/05/2026 12:35 PM,8022,Victoria,BBQ Ribs,Entrees,Food,1,26.00,0.00,26.00,26.00,2.08,False
+Main Dining,8022,8022,02/05/2026 12:35 PM,8022,Victoria,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8022,8022,02/05/2026 12:35 PM,8022,Victoria,Espresso Martini,Beverages,Alcohol,2,15.00,0.00,15.00,30.00,2.40,False
+Main Dining,8022,8022,02/05/2026 12:35 PM,8022,Victoria,House Margarita,Beverages,Alcohol,1,12.00,0.00,12.00,12.00,0.96,False
+Main Dining,8022,8022,02/05/2026 12:35 PM,8022,Victoria,Soda,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8022,8022,02/05/2026 12:35 PM,8022,Victoria,Truffle Fries,Appetizers,Food,1,9.00,0.00,9.00,9.00,0.72,False
+Main Dining,8023,8023,02/05/2026 1:15 PM,8023,Susan,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8023,8023,02/05/2026 1:15 PM,8023,Susan,Smash Burger,Entrees,Food,1,16.00,0.00,16.00,16.00,1.28,False
+Main Dining,8023,8023,02/05/2026 1:15 PM,8023,Susan,Cabernet Glass,Beverages,Alcohol,2,11.00,0.00,11.00,22.00,1.76,False
+Main Dining,8023,8023,02/05/2026 1:15 PM,8023,Susan,Pilsner Draft,Beverages,Alcohol,1,6.50,0.00,6.50,6.50,0.52,False
+Main Dining,8023,8023,02/05/2026 1:15 PM,8023,Susan,Chips & Salsa,Appetizers,Food,1,8.00,0.00,8.00,8.00,0.64,False
+Main Dining,8024,8024,02/05/2026 6:50 PM,8024,Victoria,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8024,8024,02/05/2026 6:50 PM,8024,Victoria,Chicken Sandwich,Entrees,Food,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8024,8024,02/05/2026 6:50 PM,8024,Victoria,House Margarita,Beverages,Alcohol,2,12.00,0.00,12.00,24.00,1.92,False
+Main Dining,8024,8024,02/05/2026 6:50 PM,8024,Victoria,NA Beer,Beverages,NonAlcohol,1,5.00,0.00,5.00,5.00,0.40,False
+Main Dining,8024,8024,02/05/2026 6:50 PM,8024,Victoria,Nachos,Appetizers,Food,1,13.00,0.00,13.00,13.00,1.04,False
+Main Dining,8025,8025,02/05/2026 7:40 PM,8025,Susan,BBQ Ribs,Entrees,Food,1,26.00,0.00,26.00,26.00,2.08,False
+Main Dining,8025,8025,02/05/2026 7:40 PM,8025,Susan,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8025,8025,02/05/2026 7:40 PM,8025,Susan,House Margarita,Beverages,Alcohol,1,12.00,0.00,12.00,12.00,0.96,False
+Main Dining,8025,8025,02/05/2026 7:40 PM,8025,Susan,Tequila Shot,Shots,Alcohol,2,7.00,0.00,7.00,14.00,1.12,False
+Main Dining,8025,8025,02/05/2026 7:40 PM,8025,Susan,Wings,Appetizers,Food,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8050,8050,02/05/2026 11:20 AM,8050,Victoria,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8050,8050,02/05/2026 11:20 AM,8050,Victoria,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8050,8050,02/05/2026 11:20 AM,8050,Victoria,House Margarita,Beverages,Alcohol,1,12.00,0.00,12.00,12.00,0.96,False
+Main Dining,8050,8050,02/05/2026 11:20 AM,8050,Victoria,Soda,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8050,8050,02/05/2026 11:20 AM,8050,Victoria,Wings,Appetizers,Food,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8051,8051,02/05/2026 12:50 PM,8051,Susan,Salmon Plate,Entrees,Food,1,25.00,0.00,25.00,25.00,2.00,False
+Main Dining,8051,8051,02/05/2026 12:50 PM,8051,Susan,Veggie Bowl,Entrees,Food,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8051,8051,02/05/2026 12:50 PM,8051,Susan,Pilsner Draft,Beverages,Alcohol,2,6.50,0.00,6.50,13.00,1.04,False
+Main Dining,8051,8051,02/05/2026 12:50 PM,8051,Susan,NA Beer,Beverages,NonAlcohol,1,5.00,0.00,5.00,5.00,0.40,False
+Main Dining,8051,8051,02/05/2026 12:50 PM,8051,Susan,Chips & Salsa,Appetizers,Food,1,8.00,0.00,8.00,8.00,0.64,False
+Main Dining,8052,8052,02/05/2026 1:40 PM,8052,Beth,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8052,8052,02/05/2026 1:40 PM,8052,Beth,BBQ Ribs,Entrees,Food,1,26.00,0.00,26.00,26.00,2.08,False
+Main Dining,8052,8052,02/05/2026 1:40 PM,8052,Beth,Old Fashioned,Beverages,Alcohol,2,14.00,0.00,14.00,28.00,2.24,False
+Main Dining,8052,8052,02/05/2026 1:40 PM,8052,Beth,Lemonade,Beverages,NonAlcohol,1,4.00,0.00,4.00,4.00,0.32,False
+Main Dining,8052,8052,02/05/2026 1:40 PM,8052,Beth,Nachos,Appetizers,Food,1,13.00,0.00,13.00,13.00,1.04,False
+Main Dining,8053,8053,02/05/2026 6:30 PM,8053,Victoria,Chicken Sandwich,Entrees,Food,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8053,8053,02/05/2026 6:30 PM,8053,Victoria,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8053,8053,02/05/2026 6:30 PM,8053,Victoria,Cabernet Glass,Beverages,Alcohol,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8053,8053,02/05/2026 6:30 PM,8053,Victoria,IPA Draft,Beverages,Alcohol,1,7.00,0.00,7.00,7.00,0.56,False
+Main Dining,8053,8053,02/05/2026 6:30 PM,8053,Victoria,Truffle Fries,Appetizers,Food,1,9.00,0.00,9.00,9.00,0.72,False
+Main Dining,8054,8054,02/05/2026 8:15 PM,8054,Susan,Smash Burger,Entrees,Food,1,16.00,0.00,16.00,16.00,1.28,False
+Main Dining,8054,8054,02/05/2026 8:15 PM,8054,Susan,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8054,8054,02/05/2026 8:15 PM,8054,Susan,Espresso Martini,Beverages,Alcohol,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8054,8054,02/05/2026 8:15 PM,8054,Susan,House Margarita,Beverages,Alcohol,1,12.00,0.00,12.00,12.00,0.96,False
+Main Dining,8054,8054,02/05/2026 8:15 PM,8054,Susan,Mozz Sticks,Appetizers,Food,1,10.00,0.00,10.00,10.00,0.80,False
+Main Dining,8026,8026,02/06/2026 11:40 AM,8026,Victoria,Smash Burger,Entrees,Food,1,16.00,0.00,16.00,16.00,1.28,False
+Main Dining,8026,8026,02/06/2026 11:40 AM,8026,Victoria,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8026,8026,02/06/2026 11:40 AM,8026,Victoria,House Margarita,Beverages,Alcohol,2,12.00,0.00,12.00,24.00,1.92,False
+Main Dining,8026,8026,02/06/2026 11:40 AM,8026,Victoria,Soda,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8026,8026,02/06/2026 11:40 AM,8026,Victoria,Chips & Salsa,Appetizers,Food,1,8.00,0.00,8.00,8.00,0.64,False
+Main Dining,8027,8027,02/06/2026 12:25 PM,8027,Beth,Chicken Sandwich,Entrees,Food,2,15.00,0.00,15.00,30.00,2.40,False
+Main Dining,8027,8027,02/06/2026 12:25 PM,8027,Beth,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8027,8027,02/06/2026 12:25 PM,8027,Beth,Pilsner Draft,Beverages,Alcohol,2,6.50,0.00,6.50,13.00,1.04,False
+Main Dining,8027,8027,02/06/2026 12:25 PM,8027,Beth,Lemonade,Beverages,NonAlcohol,1,4.00,0.00,4.00,4.00,0.32,False
+Main Dining,8027,8027,02/06/2026 12:25 PM,8027,Beth,Mozz Sticks,Appetizers,Food,1,10.00,0.00,10.00,10.00,0.80,False
+Main Dining,8028,8028,02/06/2026 1:10 PM,8028,Susan,Salmon Plate,Entrees,Food,1,25.00,0.00,25.00,25.00,2.00,False
+Main Dining,8028,8028,02/06/2026 1:10 PM,8028,Susan,Veggie Bowl,Entrees,Food,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8028,8028,02/06/2026 1:10 PM,8028,Susan,Cabernet Glass,Beverages,Alcohol,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8028,8028,02/06/2026 1:10 PM,8028,Susan,House Margarita,Beverages,Alcohol,1,12.00,0.00,12.00,12.00,0.96,False
+Main Dining,8028,8028,02/06/2026 1:10 PM,8028,Susan,NA Beer,Beverages,NonAlcohol,1,5.00,0.00,5.00,5.00,0.40,False
+Main Dining,8028,8028,02/06/2026 1:10 PM,8028,Susan,Nachos,Appetizers,Food,1,13.00,0.00,13.00,13.00,1.04,False
+Main Dining,8029,8029,02/06/2026 6:55 PM,8029,Victoria,BBQ Ribs,Entrees,Food,1,26.00,0.00,26.00,26.00,2.08,False
+Main Dining,8029,8029,02/06/2026 6:55 PM,8029,Victoria,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8029,8029,02/06/2026 6:55 PM,8029,Victoria,Old Fashioned,Beverages,Alcohol,2,14.00,0.00,14.00,28.00,2.24,False
+Main Dining,8029,8029,02/06/2026 6:55 PM,8029,Victoria,IPA Draft,Beverages,Alcohol,1,7.00,0.00,7.00,7.00,0.56,False
+Main Dining,8029,8029,02/06/2026 6:55 PM,8029,Victoria,Truffle Fries,Appetizers,Food,1,9.00,0.00,9.00,9.00,0.72,False
+Main Dining,8030,8030,02/06/2026 7:35 PM,8030,Susan,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8030,8030,02/06/2026 7:35 PM,8030,Susan,Smash Burger,Entrees,Food,1,16.00,0.00,16.00,16.00,1.28,False
+Main Dining,8030,8030,02/06/2026 7:35 PM,8030,Susan,Espresso Martini,Beverages,Alcohol,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8030,8030,02/06/2026 7:35 PM,8030,Susan,Iced Tea,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8030,8030,02/06/2026 7:35 PM,8030,Susan,Wings,Appetizers,Food,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8055,8055,02/06/2026 12:05 PM,8055,Beth,Salmon Plate,Entrees,Food,1,25.00,0.00,25.00,25.00,2.00,False
+Main Dining,8055,8055,02/06/2026 12:05 PM,8055,Beth,Chicken Sandwich,Entrees,Food,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8055,8055,02/06/2026 12:05 PM,8055,Beth,House Margarita,Beverages,Alcohol,2,12.00,0.00,12.00,24.00,1.92,False
+Main Dining,8055,8055,02/06/2026 12:05 PM,8055,Beth,Iced Tea,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8055,8055,02/06/2026 12:05 PM,8055,Beth,Chips & Salsa,Appetizers,Food,1,8.00,0.00,8.00,8.00,0.64,False
+Main Dining,8056,8056,02/06/2026 1:35 PM,8056,Victoria,BBQ Ribs,Entrees,Food,1,26.00,0.00,26.00,26.00,2.08,False
+Main Dining,8056,8056,02/06/2026 1:35 PM,8056,Victoria,Veggie Bowl,Entrees,Food,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8056,8056,02/06/2026 1:35 PM,8056,Victoria,Old Fashioned,Beverages,Alcohol,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8056,8056,02/06/2026 1:35 PM,8056,Victoria,Soda,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8056,8056,02/06/2026 1:35 PM,8056,Victoria,Wings,Appetizers,Food,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8057,8057,02/06/2026 6:15 PM,8057,Susan,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8057,8057,02/06/2026 6:15 PM,8057,Susan,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8057,8057,02/06/2026 6:15 PM,8057,Susan,Cabernet Glass,Beverages,Alcohol,2,11.00,0.00,11.00,22.00,1.76,False
+Main Dining,8057,8057,02/06/2026 6:15 PM,8057,Susan,Pilsner Draft,Beverages,Alcohol,1,6.50,0.00,6.50,6.50,0.52,False
+Main Dining,8057,8057,02/06/2026 6:15 PM,8057,Susan,Nachos,Appetizers,Food,1,13.00,0.00,13.00,13.00,1.04,False
+Main Dining,8058,8058,02/06/2026 7:10 PM,8058,Beth,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8058,8058,02/06/2026 7:10 PM,8058,Beth,Smash Burger,Entrees,Food,1,16.00,0.00,16.00,16.00,1.28,False
+Main Dining,8058,8058,02/06/2026 7:10 PM,8058,Beth,IPA Draft,Beverages,Alcohol,2,7.00,0.00,7.00,14.00,1.12,False
+Main Dining,8058,8058,02/06/2026 7:10 PM,8058,Beth,Lemonade,Beverages,NonAlcohol,1,4.00,0.00,4.00,4.00,0.32,False
+Main Dining,8058,8058,02/06/2026 7:10 PM,8058,Beth,Truffle Fries,Appetizers,Food,1,9.00,0.00,9.00,9.00,0.72,False
+Main Dining,8059,8059,02/06/2026 8:20 PM,8059,Victoria,Salmon Plate,Entrees,Food,1,25.00,0.00,25.00,25.00,2.00,False
+Main Dining,8059,8059,02/06/2026 8:20 PM,8059,Victoria,BBQ Ribs,Entrees,Food,1,26.00,0.00,26.00,26.00,2.08,False
+Main Dining,8059,8059,02/06/2026 8:20 PM,8059,Victoria,House Margarita,Beverages,Alcohol,2,12.00,0.00,12.00,24.00,1.92,False
+Main Dining,8059,8059,02/06/2026 8:20 PM,8059,Victoria,NA Beer,Beverages,NonAlcohol,1,5.00,0.00,5.00,5.00,0.40,False
+Main Dining,8059,8059,02/06/2026 8:20 PM,8059,Victoria,Mozz Sticks,Appetizers,Food,1,10.00,0.00,10.00,10.00,0.80,False
+Main Dining,8031,8031,02/07/2026 12:00 PM,8031,Beth,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8031,8031,02/07/2026 12:00 PM,8031,Beth,Salmon Plate,Entrees,Food,1,25.00,0.00,25.00,25.00,2.00,False
+Main Dining,8031,8031,02/07/2026 12:00 PM,8031,Beth,House Margarita,Beverages,Alcohol,2,12.00,0.00,12.00,24.00,1.92,False
+Main Dining,8031,8031,02/07/2026 12:00 PM,8031,Beth,Jameson Shot,Shots,Alcohol,1,8.00,0.00,8.00,8.00,0.64,False
+Main Dining,8031,8031,02/07/2026 12:00 PM,8031,Beth,Truffle Fries,Appetizers,Food,1,9.00,0.00,9.00,9.00,0.72,False
+Main Dining,8032,8032,02/07/2026 12:50 PM,8032,Victoria,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8032,8032,02/07/2026 12:50 PM,8032,Victoria,BBQ Ribs,Entrees,Food,1,26.00,0.00,26.00,26.00,2.08,False
+Main Dining,8032,8032,02/07/2026 12:50 PM,8032,Victoria,House Margarita,Beverages,Alcohol,1,12.00,0.00,12.00,12.00,0.96,False
+Main Dining,8032,8032,02/07/2026 12:50 PM,8032,Victoria,Old Fashioned,Beverages,Alcohol,2,14.00,0.00,14.00,28.00,2.24,False
+Main Dining,8032,8032,02/07/2026 12:50 PM,8032,Victoria,Chips & Salsa,Appetizers,Food,1,8.00,0.00,8.00,8.00,0.64,False
+Main Dining,8033,8033,02/07/2026 6:40 PM,8033,Susan,Veggie Bowl,Entrees,Food,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8033,8033,02/07/2026 6:40 PM,8033,Susan,Chicken Sandwich,Entrees,Food,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8033,8033,02/07/2026 6:40 PM,8033,Susan,Cabernet Glass,Beverages,Alcohol,2,11.00,0.00,11.00,22.00,1.76,False
+Main Dining,8033,8033,02/07/2026 6:40 PM,8033,Susan,Pilsner Draft,Beverages,Alcohol,1,6.50,0.00,6.50,6.50,0.52,False
+Main Dining,8033,8033,02/07/2026 6:40 PM,8033,Susan,Nachos,Appetizers,Food,1,13.00,0.00,13.00,13.00,1.04,False
+Main Dining,8034,8034,02/07/2026 7:25 PM,8034,Victoria,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8034,8034,02/07/2026 7:25 PM,8034,Victoria,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8034,8034,02/07/2026 7:25 PM,8034,Victoria,Espresso Martini,Beverages,Alcohol,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8034,8034,02/07/2026 7:25 PM,8034,Victoria,IPA Draft,Beverages,Alcohol,2,7.00,0.00,7.00,14.00,1.12,False
+Main Dining,8034,8034,02/07/2026 7:25 PM,8034,Victoria,Mozz Sticks,Appetizers,Food,1,10.00,0.00,10.00,10.00,0.80,False
+Main Dining,8060,8060,02/07/2026 11:25 AM,8060,Susan,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8060,8060,02/07/2026 11:25 AM,8060,Susan,Veggie Bowl,Entrees,Food,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8060,8060,02/07/2026 11:25 AM,8060,Susan,Pilsner Draft,Beverages,Alcohol,2,6.50,0.00,6.50,13.00,1.04,False
+Main Dining,8060,8060,02/07/2026 11:25 AM,8060,Susan,Chips & Salsa,Appetizers,Food,1,8.00,0.00,8.00,8.00,0.64,False
+Main Dining,8061,8061,02/07/2026 1:15 PM,8061,Victoria,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8061,8061,02/07/2026 1:15 PM,8061,Victoria,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8061,8061,02/07/2026 1:15 PM,8061,Victoria,Old Fashioned,Beverages,Alcohol,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8061,8061,02/07/2026 1:15 PM,8061,Victoria,IPA Draft,Beverages,Alcohol,1,7.00,0.00,7.00,7.00,0.56,False
+Main Dining,8061,8061,02/07/2026 1:15 PM,8061,Victoria,Nachos,Appetizers,Food,1,13.00,0.00,13.00,13.00,1.04,False
+Main Dining,8062,8062,02/07/2026 6:05 PM,8062,Beth,Salmon Plate,Entrees,Food,1,25.00,0.00,25.00,25.00,2.00,False
+Main Dining,8062,8062,02/07/2026 6:05 PM,8062,Beth,Chicken Sandwich,Entrees,Food,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8062,8062,02/07/2026 6:05 PM,8062,Beth,House Margarita,Beverages,Alcohol,2,12.00,0.00,12.00,24.00,1.92,False
+Main Dining,8062,8062,02/07/2026 6:05 PM,8062,Beth,Soda,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8062,8062,02/07/2026 6:05 PM,8062,Beth,Wings,Appetizers,Food,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8063,8063,02/07/2026 7:00 PM,8063,Susan,BBQ Ribs,Entrees,Food,1,26.00,0.00,26.00,26.00,2.08,False
+Main Dining,8063,8063,02/07/2026 7:00 PM,8063,Susan,Smash Burger,Entrees,Food,1,16.00,0.00,16.00,16.00,1.28,False
+Main Dining,8063,8063,02/07/2026 7:00 PM,8063,Susan,Espresso Martini,Beverages,Alcohol,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8063,8063,02/07/2026 7:00 PM,8063,Susan,Cabernet Glass,Beverages,Alcohol,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8063,8063,02/07/2026 7:00 PM,8063,Susan,Mozz Sticks,Appetizers,Food,1,10.00,0.00,10.00,10.00,0.80,False
+Main Dining,8064,8064,02/07/2026 8:40 PM,8064,Victoria,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8064,8064,02/07/2026 8:40 PM,8064,Victoria,Veggie Bowl,Entrees,Food,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8064,8064,02/07/2026 8:40 PM,8064,Victoria,House Margarita,Beverages,Alcohol,1,12.00,0.00,12.00,12.00,0.96,False
+Main Dining,8064,8064,02/07/2026 8:40 PM,8064,Victoria,Lemonade,Beverages,NonAlcohol,1,4.00,0.00,4.00,4.00,0.32,False
+Main Dining,8064,8064,02/07/2026 8:40 PM,8064,Victoria,Truffle Fries,Appetizers,Food,1,9.00,0.00,9.00,9.00,0.72,False
+Main Dining,8070,8070,02/07/2026 9:15 PM,8070,Susan,Salmon Plate,Entrees,Food,1,25.00,0.00,25.00,25.00,2.00,False
+Main Dining,8070,8070,02/07/2026 9:15 PM,8070,Susan,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8070,8070,02/07/2026 9:15 PM,8070,Susan,House Margarita,Beverages,Alcohol,1,12.00,0.00,12.00,12.00,0.96,False
+Main Dining,8070,8070,02/07/2026 9:15 PM,8070,Susan,Cabernet Glass,Beverages,Alcohol,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8070,8070,02/07/2026 9:15 PM,8070,Susan,Chips & Salsa,Appetizers,Food,1,8.00,0.00,8.00,8.00,0.64,False
+Main Dining,8035,8035,02/08/2026 11:35 AM,8035,Beth,Smash Burger,Entrees,Food,1,16.00,0.00,16.00,16.00,1.28,False
+Main Dining,8035,8035,02/08/2026 11:35 AM,8035,Beth,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8035,8035,02/08/2026 11:35 AM,8035,Beth,IPA Draft,Beverages,Alcohol,2,7.00,0.00,7.00,14.00,1.12,False
+Main Dining,8035,8035,02/08/2026 11:35 AM,8035,Beth,Lemonade,Beverages,NonAlcohol,1,4.00,0.00,4.00,4.00,0.32,False
+Main Dining,8035,8035,02/08/2026 11:35 AM,8035,Beth,Wings,Appetizers,Food,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8036,8036,02/08/2026 12:40 PM,8036,Susan,Salmon Plate,Entrees,Food,1,25.00,0.00,25.00,25.00,2.00,False
+Main Dining,8036,8036,02/08/2026 12:40 PM,8036,Susan,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8036,8036,02/08/2026 12:40 PM,8036,Susan,House Margarita,Beverages,Alcohol,2,12.00,0.00,12.00,24.00,1.92,False
+Main Dining,8036,8036,02/08/2026 12:40 PM,8036,Susan,Soda,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8036,8036,02/08/2026 12:40 PM,8036,Susan,Chips & Salsa,Appetizers,Food,1,8.00,0.00,8.00,8.00,0.64,False
+Main Dining,8037,8037,02/08/2026 1:20 PM,8037,Victoria,BBQ Ribs,Entrees,Food,1,26.00,0.00,26.00,26.00,2.08,False
+Main Dining,8037,8037,02/08/2026 1:20 PM,8037,Victoria,Veggie Bowl,Entrees,Food,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8037,8037,02/08/2026 1:20 PM,8037,Victoria,Old Fashioned,Beverages,Alcohol,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8037,8037,02/08/2026 1:20 PM,8037,Victoria,Cabernet Glass,Beverages,Alcohol,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8037,8037,02/08/2026 1:20 PM,8037,Victoria,Nachos,Appetizers,Food,1,13.00,0.00,13.00,13.00,1.04,False
+Main Dining,8038,8038,02/08/2026 6:55 PM,8038,Susan,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8038,8038,02/08/2026 6:55 PM,8038,Susan,Chicken Sandwich,Entrees,Food,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8038,8038,02/08/2026 6:55 PM,8038,Susan,Pilsner Draft,Beverages,Alcohol,2,6.50,0.00,6.50,13.00,1.04,False
+Main Dining,8038,8038,02/08/2026 6:55 PM,8038,Susan,NA Beer,Beverages,NonAlcohol,1,5.00,0.00,5.00,5.00,0.40,False
+Main Dining,8038,8038,02/08/2026 6:55 PM,8038,Susan,Mozz Sticks,Appetizers,Food,1,10.00,0.00,10.00,10.00,0.80,False
+Main Dining,8039,8039,02/08/2026 7:45 PM,8039,Victoria,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8039,8039,02/08/2026 7:45 PM,8039,Victoria,Salmon Plate,Entrees,Food,1,25.00,0.00,25.00,25.00,2.00,False
+Main Dining,8039,8039,02/08/2026 7:45 PM,8039,Victoria,House Margarita,Beverages,Alcohol,2,12.00,0.00,12.00,24.00,1.92,False
+Main Dining,8039,8039,02/08/2026 7:45 PM,8039,Victoria,Rumple Shot,Shots,Alcohol,1,7.00,0.00,7.00,7.00,0.56,False
+Main Dining,8039,8039,02/08/2026 7:45 PM,8039,Victoria,Truffle Fries,Appetizers,Food,1,9.00,0.00,9.00,9.00,0.72,False
+Main Dining,8065,8065,02/08/2026 11:15 AM,8065,Susan,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8065,8065,02/08/2026 11:15 AM,8065,Susan,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8065,8065,02/08/2026 11:15 AM,8065,Susan,House Margarita,Beverages,Alcohol,2,12.00,0.00,12.00,24.00,1.92,False
+Main Dining,8065,8065,02/08/2026 11:15 AM,8065,Susan,Iced Tea,Beverages,NonAlcohol,1,3.50,0.00,3.50,3.50,0.28,False
+Main Dining,8065,8065,02/08/2026 11:15 AM,8065,Susan,Wings,Appetizers,Food,1,11.00,0.00,11.00,11.00,0.88,False
+Main Dining,8066,8066,02/08/2026 12:25 PM,8066,Beth,BBQ Ribs,Entrees,Food,1,26.00,0.00,26.00,26.00,2.08,False
+Main Dining,8066,8066,02/08/2026 12:25 PM,8066,Beth,Fish Tacos,Entrees,Food,1,17.00,0.00,17.00,17.00,1.36,False
+Main Dining,8066,8066,02/08/2026 12:25 PM,8066,Beth,Old Fashioned,Beverages,Alcohol,2,14.00,0.00,14.00,28.00,2.24,False
+Main Dining,8066,8066,02/08/2026 12:25 PM,8066,Beth,NA Beer,Beverages,NonAlcohol,1,5.00,0.00,5.00,5.00,0.40,False
+Main Dining,8066,8066,02/08/2026 12:25 PM,8066,Beth,Chips & Salsa,Appetizers,Food,1,8.00,0.00,8.00,8.00,0.64,False
+Main Dining,8067,8067,02/08/2026 1:45 PM,8067,Victoria,Salmon Plate,Entrees,Food,1,25.00,0.00,25.00,25.00,2.00,False
+Main Dining,8067,8067,02/08/2026 1:45 PM,8067,Victoria,Veggie Bowl,Entrees,Food,1,14.00,0.00,14.00,14.00,1.12,False
+Main Dining,8067,8067,02/08/2026 1:45 PM,8067,Victoria,Cabernet Glass,Beverages,Alcohol,2,11.00,0.00,11.00,22.00,1.76,False
+Main Dining,8067,8067,02/08/2026 1:45 PM,8067,Victoria,Pilsner Draft,Beverages,Alcohol,1,6.50,0.00,6.50,6.50,0.52,False
+Main Dining,8067,8067,02/08/2026 1:45 PM,8067,Victoria,Nachos,Appetizers,Food,1,13.00,0.00,13.00,13.00,1.04,False
+Main Dining,8068,8068,02/08/2026 6:30 PM,8068,Susan,Chicken Sandwich,Entrees,Food,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8068,8068,02/08/2026 6:30 PM,8068,Susan,Steak Frites,Entrees,Food,1,24.00,0.00,24.00,24.00,1.92,False
+Main Dining,8068,8068,02/08/2026 6:30 PM,8068,Susan,IPA Draft,Beverages,Alcohol,2,7.00,0.00,7.00,14.00,1.12,False
+Main Dining,8068,8068,02/08/2026 6:30 PM,8068,Susan,Lemonade,Beverages,NonAlcohol,1,4.00,0.00,4.00,4.00,0.32,False
+Main Dining,8068,8068,02/08/2026 6:30 PM,8068,Susan,Truffle Fries,Appetizers,Food,1,9.00,0.00,9.00,9.00,0.72,False
+Main Dining,8069,8069,02/08/2026 8:00 PM,8069,Beth,Smash Burger,Entrees,Food,1,16.00,0.00,16.00,16.00,1.28,False
+Main Dining,8069,8069,02/08/2026 8:00 PM,8069,Beth,Chicken Alfredo,Entrees,Food,1,22.00,0.00,22.00,22.00,1.76,False
+Main Dining,8069,8069,02/08/2026 8:00 PM,8069,Beth,Espresso Martini,Beverages,Alcohol,1,15.00,0.00,15.00,15.00,1.20,False
+Main Dining,8069,8069,02/08/2026 8:00 PM,8069,Beth,House Margarita,Beverages,Alcohol,1,12.00,0.00,12.00,12.00,0.96,False
+Main Dining,8069,8069,02/08/2026 8:00 PM,8069,Beth,Jameson Shot,Shots,Alcohol,1,8.00,0.00,8.00,8.00,0.64,False
+Main Dining,8069,8069,02/08/2026 8:00 PM,8069,Beth,Mozz Sticks,Appetizers,Food,1,10.00,0.00,10.00,10.00,0.80,False
