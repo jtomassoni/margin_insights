@@ -4,6 +4,18 @@ import { useState } from 'react';
 import type { ItemMarginRow } from '@/insight-engine/services/marginEngine';
 import type { ProfitLeakItem } from '@/insight-engine/reports/profitLeakReport';
 
+const clampTooltip = (x: number, y: number, w = 260, h = 180) => {
+  if (typeof window === 'undefined') return { left: x + 12, top: y + 8 };
+  const pad = 8;
+  let left = x + 12;
+  let top = y + 8;
+  if (left + w > window.innerWidth - pad) left = window.innerWidth - w - pad;
+  if (left < pad) left = pad;
+  if (top + h > window.innerHeight - pad) top = window.innerHeight - h - pad;
+  if (top < pad) top = pad;
+  return { left, top };
+};
+
 const marginColor = (pct: number, targetPct: number) => {
   if (Number.isNaN(pct)) return 'var(--text-muted)';
   if (pct >= targetPct) return 'var(--success)';
@@ -11,7 +23,7 @@ const marginColor = (pct: number, targetPct: number) => {
   return 'var(--danger)';
 };
 
-/** Horizontal bar chart: contribution margin by item, colored by margin %. Top N items. */
+/** Horizontal bar chart: profit (per item × volume) by item, colored by margin %. Top N items. */
 export const ContributionBarChart = ({
   rows,
   targetMarginPct,
@@ -38,7 +50,7 @@ export const ContributionBarChart = ({
 
   return (
     <div className="chart-card">
-      <h4 className="chart-title">Top contribution margin (profit per item × volume)</h4>
+      <h4 className="chart-title" title="Profit per item × units sold; bars colored by margin % vs target">Profit (per item × volume)</h4>
       <svg
         width="100%"
         height={height}
@@ -61,6 +73,13 @@ export const ContributionBarChart = ({
               }}
               onMouseMove={(e) => {
                 if (hovered?.item_name === r.item_name) setTooltipPos({ x: e.clientX, y: e.clientY });
+              }}
+              onMouseLeave={() => setHovered(null)}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                const t = e.touches[0];
+                setHovered((prev) => (prev?.item_name === r.item_name ? null : r));
+                setTooltipPos({ x: t.clientX, y: t.clientY });
               }}
               style={{ cursor: 'pointer' }}
             >
@@ -88,12 +107,12 @@ export const ContributionBarChart = ({
       {hovered && (
         <div
           className="quadrant-tooltip"
-          style={{ position: 'fixed', left: tooltipPos.x + 12, top: tooltipPos.y + 8, pointerEvents: 'none' }}
+          style={{ position: 'fixed', ...clampTooltip(tooltipPos.x, tooltipPos.y), pointerEvents: 'none' }}
           role="tooltip"
         >
           <div className="quadrant-tooltip-name">{hovered.item_name}</div>
           <div className="quadrant-tooltip-row">
-            <span>Contribution</span>
+            <span>Profit</span>
             <span className="num">${hovered.contribution_margin.toFixed(2)}</span>
           </div>
           <div className="quadrant-tooltip-row">
@@ -135,7 +154,7 @@ export const LostProfitBarChart = ({ items }: { items: ProfitLeakItem[] }) => {
 
   return (
     <div className="chart-card">
-      <h4 className="chart-title">Where the leak is biggest (est. $/month)</h4>
+      <h4 className="chart-title" title="Estimated profit left on the table per month if prices stay below target">Where the leak is biggest (est. $/month)</h4>
       <svg
         width="100%"
         height={height}
@@ -157,6 +176,13 @@ export const LostProfitBarChart = ({ items }: { items: ProfitLeakItem[] }) => {
               }}
               onMouseMove={(e) => {
                 if (hovered?.item_name === i.item_name) setTooltipPos({ x: e.clientX, y: e.clientY });
+              }}
+              onMouseLeave={() => setHovered(null)}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                const t = e.touches[0];
+                setHovered((prev) => (prev?.item_name === i.item_name ? null : i));
+                setTooltipPos({ x: t.clientX, y: t.clientY });
               }}
               style={{ cursor: 'pointer' }}
             >
@@ -184,7 +210,7 @@ export const LostProfitBarChart = ({ items }: { items: ProfitLeakItem[] }) => {
       {hovered && (
         <div
           className="quadrant-tooltip"
-          style={{ position: 'fixed', left: tooltipPos.x + 12, top: tooltipPos.y + 8, pointerEvents: 'none' }}
+          style={{ position: 'fixed', ...clampTooltip(tooltipPos.x, tooltipPos.y), pointerEvents: 'none' }}
           role="tooltip"
         >
           <div className="quadrant-tooltip-name">{hovered.item_name}</div>
@@ -229,19 +255,23 @@ export const RevenueDonut = ({ rows, topN = 8 }: { rows: ItemMarginRow[]; topN?:
   const segments: DonutSegment[] = other > 0 ? [...top.map((r) => ({ name: r.item_name, value: r.revenue })), { name: 'Other', value: other }] : top.map((r) => ({ name: r.item_name, value: r.revenue }));
   const colors = ['var(--accent)', 'var(--success)', 'var(--warn)', '#a78bfa', '#34d399', '#fbbf24', '#f472b6', '#60a5fa', 'var(--text-muted)'];
   let acc = 0;
-  const r = 48;
-  const cx = 70;
-  const cy = 70;
+  const size = 200;
+  const r = 72;
+  const cx = size / 2;
+  const cy = size / 2;
 
   return (
-    <div className="chart-card">
-      <h4 className="chart-title">Revenue mix</h4>
+    <div className="chart-card revenue-mix-card">
+      <div className="revenue-mix-header">
+        <h4 className="chart-title" title="Share of total revenue by item; hover a slice or legend for details">Revenue mix</h4>
+        <div className="revenue-mix-total" aria-label={`Total revenue ${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}>
+          Total revenue <strong>${total.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</strong>
+        </div>
+      </div>
       <div className="donut-wrap">
         <svg
-          width="140"
-          height="140"
-          viewBox="0 0 140 140"
-          className="donut-svg"
+          viewBox={`0 0 ${size} ${size}`}
+          className="donut-svg revenue-donut-svg"
           onMouseLeave={() => setHovered(null)}
         >
           {segments.map((seg, i) => {
@@ -263,7 +293,7 @@ export const RevenueDonut = ({ rows, topN = 8 }: { rows: ItemMarginRow[]; topN?:
                 fill={colors[i % colors.length]}
                 opacity={isHover ? 1 : 0.9}
                 stroke="var(--bg)"
-                strokeWidth={isHover ? 2 : 1}
+                strokeWidth={2}
                 style={{ cursor: 'pointer' }}
                 onMouseEnter={(e) => {
                   setHovered(seg);
@@ -272,19 +302,25 @@ export const RevenueDonut = ({ rows, topN = 8 }: { rows: ItemMarginRow[]; topN?:
                 onMouseMove={(e) => {
                   if (hovered?.name === seg.name) setTooltipPos({ x: e.clientX, y: e.clientY });
                 }}
+                onMouseLeave={() => setHovered(null)}
               />
             );
           })}
-          <circle cx={cx} cy={cy} r={r * 0.55} fill="var(--surface)" pointerEvents="none" />
+          <circle cx={cx} cy={cy} r={r * 0.52} fill="var(--surface)" pointerEvents="none" />
         </svg>
         <div className="donut-legend">
-          {segments.slice(0, 6).map((seg, i) => {
+          {segments.map((seg, i) => {
             const isHover = hovered?.name === seg.name;
+            const pct = (seg.value / total) * 100;
             return (
               <div
                 key={seg.name}
                 className="donut-legend-item"
-                style={isHover ? { backgroundColor: 'var(--surface-hover)', borderRadius: 'var(--radius)', margin: '0 -0.25rem', padding: '0.25rem' } : undefined}
+                style={{
+                  cursor: 'pointer',
+                  /* Hover: background only, no padding/margin change to avoid shifting other legend items */
+                  ...(isHover ? { backgroundColor: 'var(--surface)', borderRadius: 'var(--radius)' } : {}),
+                }}
                 onMouseEnter={(e) => {
                   setHovered(seg);
                   setTooltipPos({ x: e.clientX, y: e.clientY });
@@ -296,15 +332,15 @@ export const RevenueDonut = ({ rows, topN = 8 }: { rows: ItemMarginRow[]; topN?:
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    setHovered(hovered?.name === seg.name ? null : seg);
-                  }
+                  if (e.key === 'Enter' || e.key === ' ') setHovered(hovered?.name === seg.name ? null : seg);
                 }}
-                style={{ cursor: 'pointer', ...(isHover ? { backgroundColor: 'var(--surface)', borderRadius: 'var(--radius)', margin: '0 -0.25rem', padding: '0.25rem' } : {}) }}
               >
                 <span className="donut-dot" style={{ background: colors[i % colors.length] }} />
-                <span className="donut-label" title={seg.name}>{seg.name.length > 14 ? seg.name.slice(0, 13) + '…' : seg.name}</span>
-                <span className="donut-pct">{((seg.value / total) * 100).toFixed(0)}%</span>
+                <span className="donut-label" title={seg.name}>{seg.name.length > 16 ? seg.name.slice(0, 15) + '…' : seg.name}</span>
+                <span className="donut-meta">
+                  <span className="donut-pct">{pct.toFixed(1)}%</span>
+                  <span className="donut-revenue">${seg.value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                </span>
               </div>
             );
           })}
@@ -313,7 +349,7 @@ export const RevenueDonut = ({ rows, topN = 8 }: { rows: ItemMarginRow[]; topN?:
       {hovered && (
         <div
           className="quadrant-tooltip"
-          style={{ position: 'fixed', left: tooltipPos.x + 12, top: tooltipPos.y + 8, pointerEvents: 'none' }}
+          style={{ position: 'fixed', ...clampTooltip(tooltipPos.x, tooltipPos.y, 220, 120), pointerEvents: 'none' }}
           role="tooltip"
         >
           <div className="quadrant-tooltip-name">{hovered.name}</div>
@@ -327,6 +363,170 @@ export const RevenueDonut = ({ rows, topN = 8 }: { rows: ItemMarginRow[]; topN?:
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+/** Radar chart: "where you really are" — mix of revenue/units from high vs low margin, with heatmap background. */
+export const MarginRealityRadar = ({
+  rows,
+  targetMarginPct,
+}: {
+  rows: ItemMarginRow[];
+  targetMarginPct: number;
+}) => {
+  const totalRevenue = rows.reduce((s, r) => s + r.revenue, 0);
+  const totalUnits = rows.reduce((s, r) => s + r.units_sold, 0);
+  const highMargin = (m: number) => !Number.isNaN(m) && m >= targetMarginPct;
+
+  const revenueFromHigh = rows.filter((r) => highMargin(r.gross_margin_pct)).reduce((s, r) => s + r.revenue, 0);
+  const revenueFromLow = totalRevenue - revenueFromHigh;
+  const unitsFromHigh = rows.filter((r) => highMargin(r.gross_margin_pct)).reduce((s, r) => s + r.units_sold, 0);
+  const itemCountHigh = rows.filter((r) => highMargin(r.gross_margin_pct)).length;
+  const revenueWeightedMargin = totalRevenue > 0
+    ? rows.reduce((s, r) => s + (r.gross_margin_pct * r.revenue), 0) / totalRevenue
+    : 0;
+
+  const pctRevenueHigh = totalRevenue > 0 ? (revenueFromHigh / totalRevenue) * 100 : 0;
+  const pctUnitsHigh = totalUnits > 0 ? (unitsFromHigh / totalUnits) * 100 : 0;
+  const pctRevenueLow = totalRevenue > 0 ? (revenueFromLow / totalRevenue) * 100 : 0;
+  const pctItemsHigh = rows.length > 0 ? (itemCountHigh / rows.length) * 100 : 0;
+  const weightedMarginCapped = Math.min(100, Math.max(0, revenueWeightedMargin));
+
+  const axes = [
+    { label: 'Revenue from high margin', short: 'Rev high', value: pctRevenueHigh },
+    { label: 'Units from high margin', short: 'Units high', value: pctUnitsHigh },
+    { label: 'Weighted avg margin %', short: 'Avg margin', value: weightedMarginCapped },
+    { label: 'Menu items at target %', short: 'Items @ target', value: pctItemsHigh },
+    { label: 'Revenue away from low margin', short: 'Rev not low', value: 100 - pctRevenueLow },
+  ];
+
+  const size = 200;
+  const cx = size / 2;
+  const cy = size / 2;
+  const radius = 82;
+  const n = axes.length;
+  const angleStep = (2 * Math.PI) / n;
+  const toPoint = (angle: number, r: number) => ({
+    x: cx + r * Math.cos(angle - Math.PI / 2),
+    y: cy + r * Math.sin(angle - Math.PI / 2),
+  });
+
+  const heatLevels = [20, 40, 60, 80, 100];
+  const dataPoints = axes.map((a, i) => toPoint(i * angleStep, (a.value / 100) * radius));
+  const dataPath = dataPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ') + ' Z';
+
+  if (totalRevenue <= 0 && totalUnits <= 0) return null;
+
+  const overallScore = (pctRevenueHigh + pctUnitsHigh + weightedMarginCapped + (100 - pctRevenueLow)) / 4;
+  const fillColor = overallScore >= 60 ? 'var(--success)' : overallScore >= 35 ? 'var(--warn)' : 'var(--danger)';
+
+  return (
+    <div className="chart-card margin-reality-radar">
+      <h4 className="chart-title" title="Where your sales and revenue really sit — high vs low margin">
+        Where you really are
+      </h4>
+      <p className="margin-reality-subtitle">
+        {pctRevenueLow > 50 ? (
+          <strong style={{ color: 'var(--warn)' }}>Most of your revenue comes from low-margin items.</strong>
+        ) : pctRevenueHigh >= 50 ? (
+          <span style={{ color: 'var(--success)' }}>Most revenue is from high-margin items.</span>
+        ) : (
+          <span>Revenue is split between high- and low-margin items.</span>
+        )}
+      </p>
+      <div className="radar-wrap">
+        <svg viewBox={`0 0 ${size} ${size}`} className="radar-svg">
+          <defs>
+            <linearGradient id="radar-heat-inner" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="var(--success)" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="var(--success)" stopOpacity="0.05" />
+            </linearGradient>
+            <linearGradient id="radar-heat-outer" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="var(--danger)" stopOpacity="0.15" />
+              <stop offset="100%" stopColor="var(--danger)" stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+          {heatLevels.slice().reverse().map((level) => {
+            const r = (level / 100) * radius;
+            const pts = Array.from({ length: n }, (_, i) => toPoint(i * angleStep, r));
+            const path = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ') + ' Z';
+            const isInner = level >= 60;
+            return (
+              <path
+                key={level}
+                d={path}
+                fill={isInner ? 'url(#radar-heat-inner)' : 'url(#radar-heat-outer)'}
+                stroke="var(--border)"
+                strokeOpacity="0.4"
+                strokeWidth="0.5"
+              />
+            );
+          })}
+          {heatLevels.map((level) => {
+            const r = (level / 100) * radius;
+            const pts = Array.from({ length: n }, (_, i) => toPoint(i * angleStep, r));
+            return (
+              <polygon
+                key={`grid-${level}`}
+                points={pts.map((p) => `${p.x},${p.y}`).join(' ')}
+                fill="none"
+                stroke="var(--text-muted)"
+                strokeOpacity="0.25"
+                strokeWidth="0.5"
+              />
+            );
+          })}
+          {axes.map((_, i) => {
+            const p = toPoint(i * angleStep, radius);
+            return (
+              <line
+                key={i}
+                x1={cx}
+                y1={cy}
+                x2={p.x}
+                y2={p.y}
+                stroke="var(--text-muted)"
+                strokeOpacity="0.3"
+                strokeWidth="0.5"
+              />
+            );
+          })}
+          <path
+            d={dataPath}
+            fill={fillColor}
+            fillOpacity="0.35"
+            stroke={fillColor}
+            strokeWidth="1.5"
+            strokeLinejoin="round"
+          />
+          {axes.map((a, i) => {
+            const p = toPoint(i * angleStep, radius + 14);
+            const anchor = p.x < cx - 5 ? 'end' : p.x > cx + 5 ? 'start' : 'middle';
+            return (
+              <text
+                key={i}
+                x={p.x}
+                y={p.y}
+                textAnchor={anchor}
+                fill="var(--text-muted)"
+                fontSize="8"
+                className="radar-label"
+              >
+                {a.short}
+              </text>
+            );
+          })}
+        </svg>
+        <ul className="radar-legend">
+          {axes.map((a, i) => (
+            <li key={i}>
+              <span className="radar-legend-label">{a.label}</span>
+              <span className="radar-legend-value">{a.value.toFixed(0)}%</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 };

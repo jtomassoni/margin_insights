@@ -4,6 +4,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Margin Insights — POS Profit Intelligence',
   description: 'Uncover hidden profit leaks with POS data and ingredient-level cost modeling.',
+  viewport: { width: 'device-width', initialScale: 1, maximumScale: 5 },
 };
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => (

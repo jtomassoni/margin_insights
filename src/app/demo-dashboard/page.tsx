@@ -17,7 +17,7 @@ import { suggestPrice } from '@/insight-engine/services/pricingEngine';
 import { runQuadrantAnalysis } from '@/insight-engine/services/quadrantAnalysis';
 import { buildProfitLeakReport } from '@/insight-engine/reports/profitLeakReport';
 import { QuadrantChart, getQuadrantInsight } from './QuadrantChart';
-import { ContributionBarChart, LostProfitBarChart, RevenueDonut } from './Charts';
+import { ContributionBarChart, LostProfitBarChart, MarginRealityRadar, RevenueDonut } from './Charts';
 
 const uid = () => Math.random().toString(36).slice(2, 11);
 
@@ -194,6 +194,11 @@ const DashboardPage = () => {
                       <p className="profit-leak-hero-p">
                         The numbers don't lie: the same figures you see in your <strong>Margins</strong> tab (revenue, cost per serving, margin %) add up to this leak. Below are the exact items and what we estimate you'd gain per month if you raised prices to hit your target. You can check the <strong>Price suggestions</strong> tab for the recommended price per item.
                       </p>
+                      {leakReport.summary.strategic_candidate_count > 0 && (
+                        <p className="profit-leak-hero-p">
+                          Some of these are <strong>high-volume, low-margin</strong> items — they might be intentional loss leaders (e.g. drinks or sides that bring people in who then buy higher-margin items). We flag those separately so you can decide: fix the price or keep them as traffic drivers.
+                        </p>
+                      )}
                       {leakReport.items.length > 0 && (
                         <p className="profit-leak-hero-p profit-leak-hero-culprits">
                           Biggest culprits: <strong>{leakReport.items.slice(0, 3).map((i) => `${i.item_name} ($${i.estimated_lost_profit_per_month.toFixed(0)}/mo)`).join(', ')}</strong>.
@@ -206,10 +211,52 @@ const DashboardPage = () => {
                     </p>
                   )}
                 </div>
+                {leakReport.items.length > 0 && (leakReport.summary.items_to_fix_count > 0 || leakReport.summary.strategic_candidate_count > 0) && (
+                  <div className="leak-high-level" aria-label="High-level picture of profit leak">
+                    <h4 className="leak-high-level-title">High-level picture</h4>
+                    <div className="leak-high-level-grid">
+                      <div className="leak-high-level-card leak-high-level-fix">
+                        <span className="leak-high-level-value">${leakReport.summary.lost_from_items_to_fix.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                        <span className="leak-high-level-label">
+                          from {leakReport.summary.items_to_fix_count} item{leakReport.summary.items_to_fix_count !== 1 ? 's' : ''} to fix
+                          {(() => {
+                            const toFixItems = leakReport.items.filter((i) => i.role === 'to_fix');
+                            const names = toFixItems.map((i) => i.item_name);
+                            if (names.length === 0) return null;
+                            if (names.length <= 3) return <>: <strong>{names.join(', ')}</strong></>;
+                            return <>: <strong>{names.slice(0, 2).join(', ')} and {names.length - 2} more</strong></>;
+                          })()}
+                        </span>
+                        <span className="leak-high-level-desc">Raise prices to capture this; no strategic reason to keep these low.</span>
+                      </div>
+                      <div className="leak-high-level-card leak-high-level-strategic">
+                        <span className="leak-high-level-value">${leakReport.summary.lost_from_strategic_candidates.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                        <span className="leak-high-level-label">
+                          from {leakReport.summary.strategic_candidate_count} possible loss leader{leakReport.summary.strategic_candidate_count !== 1 ? 's' : ''}
+                          {(() => {
+                            const strategicItems = leakReport.items.filter((i) => i.role === 'strategic_candidate');
+                            const names = strategicItems.map((i) => i.item_name);
+                            if (names.length === 0) return null;
+                            if (names.length <= 3) return <>: <strong>{names.join(', ')}</strong></>;
+                            return <>: <strong>{names.slice(0, 2).join(', ')} and {names.length - 2} more</strong></>;
+                          })()}
+                        </span>
+                        <span className="leak-high-level-desc">High volume, low margin — OK if they bring in customers who buy high-margin items; otherwise consider raising.</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {leakReport.items.length > 0 && (
                   <>
                     <div className="actionable-strip">
-                      <strong>Do this:</strong> Raise prices on the {leakReport.items.length} items below to capture about ${leakReport.summary.estimated_lost_profit_per_month.toFixed(0)}/month. Use the <strong>Price suggestions</strong> tab for exact numbers.
+                      <strong>Do this:</strong>{' '}
+                      {leakReport.summary.items_to_fix_count > 0
+                        ? `Raise prices on the ${leakReport.summary.items_to_fix_count} "to fix" item${leakReport.summary.items_to_fix_count !== 1 ? 's' : ''} below to capture about $${leakReport.summary.lost_from_items_to_fix.toFixed(0)}/month.`
+                        : 'Review the items below.'}
+                      {leakReport.summary.strategic_candidate_count > 0 && (
+                        <> The {leakReport.summary.strategic_candidate_count} possible loss leader{leakReport.summary.strategic_candidate_count !== 1 ? 's' : ''} are flagged — keep them low only if they drive other sales.</>
+                      )}
+                      {' '}Use the <strong>Price suggestions</strong> tab for exact numbers.
                     </div>
                     <LostProfitBarChart items={leakReport.items} />
                   </>
@@ -223,6 +270,7 @@ const DashboardPage = () => {
                         <th>Units sold</th>
                         <th>Suggested price</th>
                         <th>Est. lost/month</th>
+                        <th>Role</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -233,6 +281,13 @@ const DashboardPage = () => {
                           <td className="num">{i.units_sold}</td>
                           <td className="num">${i.suggested_price.toFixed(2)}</td>
                           <td className="num">${i.estimated_lost_profit_per_month.toFixed(2)}</td>
+                          <td>
+                            {i.role === 'strategic_candidate' ? (
+                              <span className="badge badge-strategic" title="High volume, low margin — may be an intentional loss leader">Possible loss leader</span>
+                            ) : (
+                              <span className="badge badge-fix" title="Recommend raising price to hit target margin">Fix price</span>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -255,20 +310,21 @@ const DashboardPage = () => {
                       <div className="actionable-strip">
                         <strong>At a glance:</strong> Your best contributors (green) are {topNames || '—'}. {watchNames ? `Watch: ${watchNames} — raise prices or reduce cost to hit target margin.` : 'Most items are at or above target margin.'}
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                      <div className="dashboard-charts-grid">
                         <ContributionBarChart rows={marginRowsWithPrices} targetMarginPct={targetPct} />
                         <RevenueDonut rows={marginRowsWithPrices} />
+                        <MarginRealityRadar rows={marginRowsWithPrices} targetMarginPct={targetPct} />
                       </div>
                       <div className="table-wrap">
                         <table className="sortable">
                           <thead>
                             <tr>
-                              <th onClick={() => toggleSort('item_name')}>Item</th>
-                              <th onClick={() => toggleSort('units_sold')}>Units sold</th>
-                              <th onClick={() => toggleSort('revenue')}>Revenue</th>
-                              <th onClick={() => toggleSort('cost_per_serving')}>Cost/serving</th>
-                              <th onClick={() => toggleSort('gross_margin_pct')}>Margin %</th>
-                              <th onClick={() => toggleSort('contribution_margin')}>Contribution</th>
+                              <th onClick={() => toggleSort('item_name')} title="Click to sort by item name">Item</th>
+                              <th onClick={() => toggleSort('units_sold')} title="Click to sort by units sold">Units sold</th>
+                              <th onClick={() => toggleSort('revenue')} title="Click to sort by revenue">Revenue</th>
+                              <th onClick={() => toggleSort('cost_per_serving')} title="Click to sort by cost per serving">Cost/serving</th>
+                              <th onClick={() => toggleSort('gross_margin_pct')} title="Click to sort by margin %">Margin %</th>
+                              <th onClick={() => toggleSort('contribution_margin')} title="Click to sort by profit">Profit</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -376,7 +432,7 @@ const DashboardPage = () => {
                   const review = byQuad.low_volume_low_margin || 0;
                   return (
                     <div className="actionable-strip" style={{ marginBottom: '1rem' }}>
-                      <strong>Your menu at a glance:</strong> {stars} stars (high volume, high margin), {fix} fix or drop (high volume, low margin), {niche} niche winners, {review} to review. Hover any dot for a plain-English insight.
+                      <strong>Your menu at a glance:</strong> {stars} stars (high volume, high margin), {fix} fix or drop (high volume, low margin — may be loss leaders), {niche} comfort items (low volume, high margin — may cost more to store than worth), {review} to review. Hover any dot for a plain-English insight.
                     </div>
                   );
                 })()}
@@ -384,7 +440,7 @@ const DashboardPage = () => {
                   <div className="quadrant-how-to-read">
                     <h4 style={{ margin: '0 0 0.5rem', fontSize: '0.95rem' }}>How to read this chart</h4>
                     <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                      Each dot is a menu item. <strong style={{ color: 'var(--text)' }}>Left–right</strong> is volume (how many you sold); <strong style={{ color: 'var(--text)' }}>bottom–top</strong> is margin % (how much you keep after cost). The lines split your menu into four quadrants: <strong style={{ color: 'var(--success)' }}>top-right</strong> = high volume, high margin (your stars); <strong style={{ color: 'var(--warn)' }}>bottom-right</strong> = high volume, low margin (you sell a lot but don't make much per item); <strong style={{ color: 'var(--text)' }}>top-left</strong> = low volume, high margin (niche winners); <strong style={{ color: 'var(--text-muted)' }}>bottom-left</strong> = low volume, low margin (review or cut). Hover any dot to see the numbers and a plain-English take on what's going on with that item.
+                      Each dot is a menu item. <strong style={{ color: 'var(--text)' }}>Left–right</strong> is volume (how many you sold); <strong style={{ color: 'var(--text)' }}>bottom–top</strong> is margin % (how much you keep after cost). The lines split your menu into four quadrants: <strong style={{ color: 'var(--success)' }}>top-right</strong> = high volume, high margin (your stars); <strong style={{ color: 'var(--warn)' }}>bottom-right</strong> = high volume, low margin (may be loss leaders — OK if they drive other sales, otherwise raise price); <strong style={{ color: 'var(--text)' }}>top-left</strong> = low volume, high margin (comfort items; they may cost more to store than they're worth — regulars might switch to something simpler if you drop them or make them specials only); <strong style={{ color: 'var(--text-muted)' }}>bottom-left</strong> = low volume, low margin (review or cut). Hover any dot to see the numbers and a plain-English take.
                     </p>
                   </div>
                   <QuadrantChart items={quadrantItems} getInsight={getQuadrantInsight} />
@@ -458,16 +514,18 @@ const DashboardPage = () => {
                   : null;
                 const atOrAboveTarget = currentMarginPct != null && currentMarginPct >= targetMarginPct;
                 return (
-                  <div key={name} className="recipe-builder-item" style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '0.75rem' }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                      <strong>{name}</strong>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                        Cost/serving: <strong style={{ color: 'var(--text)' }}>${cost.toFixed(2)}</strong>
-                      </span>
-                      <div style={{ marginLeft: 'auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1rem' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  <div key={name} className="recipe-builder-item">
+                    <div className="recipe-builder-item-header">
+                      <div className="recipe-builder-item-title-row">
+                        <strong>{name}</strong>
+                        <span className="recipe-builder-cost">
+                          Cost/serving: <strong>${cost.toFixed(2)}</strong>
+                        </span>
+                      </div>
+                      <div className="recipe-builder-item-controls">
+                        <label>
                           <span>Price</span>
-                          <span style={{ fontWeight: 500 }}>$</span>
+                          <span className="input-prefix">$</span>
                           <input
                             type="number"
                             min={0}
@@ -486,14 +544,14 @@ const DashboardPage = () => {
                               setMenuPrices((p) => ({ ...p, [name]: parseFloat(raw) || 0 }));
                             }}
                             placeholder="0"
-                            style={{ width: '4.5rem', padding: '0.35rem 0.5rem' }}
                             aria-label={`Price for ${name}`}
                           />
                         </label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                        <label>
                           <span>Target</span>
                           <input
                             type="number"
+                            className="recipe-builder-target-input"
                             min={0}
                             max={100}
                             step={1}
@@ -512,20 +570,14 @@ const DashboardPage = () => {
                               setMenuMarginGoal((m) => ({ ...m, [name]: pct / 100 }));
                             }}
                             placeholder={String(Math.round(marginGoal * 100))}
-                            style={{ width: '3rem', padding: '0.35rem 0.5rem' }}
                             aria-label={`Target margin % for ${name}`}
                           />
-                          <span style={{ fontWeight: 500 }}>%</span>
+                          <span className="input-prefix">%</span>
                         </label>
                         {currentMarginPct != null && (
                           <span
                             className={atOrAboveTarget ? 'badge badge-success' : 'badge badge-warn'}
-                            style={{
-                              fontSize: '0.85rem',
-                              padding: '0.25rem 0.5rem',
-                              borderRadius: 'var(--radius)',
-                              fontWeight: 600,
-                            }}
+                            style={{ fontWeight: 600 }}
                             title={atOrAboveTarget ? 'At or above target margin' : 'Below target margin'}
                           >
                             Margin {currentMarginPct.toFixed(1)}% {atOrAboveTarget ? '✓' : ''}
@@ -533,29 +585,33 @@ const DashboardPage = () => {
                         )}
                       </div>
                     </div>
-                    <div className="form-row" style={{ marginTop: '0.25rem' }}>
-                      <select
-                        onChange={(e) => {
-                          const id = e.target.value;
-                          if (!id) return;
-                          const q = prompt('Quantity per serving?');
-                          if (q != null) addRecipeLine(name, id, parseFloat(q) || 0);
-                          e.target.value = '';
-                        }}
-                      >
-                        <option value="">+ Add ingredient</option>
-                        {ingredients.filter((i) => i.name).map((i) => (
-                          <option key={i.id} value={i.id}>{i.name} ({i.unit_type})</option>
-                        ))}
-                      </select>
+                    <div className="recipe-builder-item-ingredients">
+                      <label className="recipe-builder-add-ingredient-label">
+                        <select
+                          className="recipe-builder-add-select"
+                          onChange={(e) => {
+                            const id = e.target.value;
+                            if (!id) return;
+                            const q = prompt('Quantity per serving?');
+                            if (q != null) addRecipeLine(name, id, parseFloat(q) || 0);
+                            e.target.value = '';
+                          }}
+                          aria-label={`Add ingredient to ${name}`}
+                        >
+                          <option value="">+ Add ingredient</option>
+                          {ingredients.filter((i) => i.name).map((i) => (
+                            <option key={i.id} value={i.id}>{i.name} ({i.unit_type})</option>
+                          ))}
+                        </select>
+                      </label>
                     </div>
-                    <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1.25rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                    <ul className="recipe-builder-lines">
                       {recipe.lines.map((line) => {
                         const ing = ingredients.find((i) => i.id === line.ingredient_id);
                         return (
-                          <li key={line.ingredient_id}>
-                            {ing?.name ?? '?'} × {line.quantity} {ing?.unit_type ?? ''}
-                            <button type="button" className="btn btn-secondary" style={{ marginLeft: '0.5rem', padding: '0.15rem 0.4rem', fontSize: '0.85rem' }} onClick={() => removeRecipeLine(name, line.ingredient_id)} aria-label="Remove ingredient">×</button>
+                          <li key={line.ingredient_id} className="recipe-builder-line">
+                            <span>{ing?.name ?? '?'} × {line.quantity} {ing?.unit_type ?? ''}</span>
+                            <button type="button" className="btn btn-secondary" style={{ padding: '0.15rem 0.5rem', fontSize: '0.8rem' }} onClick={() => removeRecipeLine(name, line.ingredient_id)} aria-label={`Remove ${ing?.name ?? 'ingredient'} from recipe`}>Remove</button>
                           </li>
                         );
                       })}
