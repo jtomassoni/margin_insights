@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Ingredient {
+  id           String   @id @default(cuid())
+  name         String
+  unitType     String   @map("unit_type")
+  costPerUnit  Float    @map("cost_per_unit")
+  kind         String?  @default("ingredient")
+  wasteFactor  Float?   @map("waste_factor")
+
+  recipeLines RecipeLine[]
+
+  @@map("ingredients")
+}
+
+model Recipe {
+  id             String   @id @default(cuid())
+  menuItemName   String   @unique @map("menu_item_name")
+  recipeLines    RecipeLine[]
+
+  @@map("recipes")
+}
+
+model RecipeLine {
+  id           String   @id @default(cuid())
+  recipeId     String   @map("recipe_id")
+  ingredientId String   @map("ingredient_id")
+  quantity     Float
+  displayUnit  String?  @map("display_unit")
+
+  recipe     Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+
+  @@unique([recipeId, ingredientId])
+  @@map("recipe_lines")
+}
+
+model MenuPrice {
+  menuItemName String @id @map("menu_item_name")
+  price        Float
+
+  @@map("menu_prices")
+}
+
+model MenuMarginGoal {
+  menuItemName String @id @map("menu_item_name")
+  goal         Float
+
+  @@map("menu_margin_goals")
+}
+
+model SalesRecord {
+  id         String   @id @default(cuid())
+  itemName   String   @map("item_name")
+  unitsSold  Int      @map("units_sold")
+  revenue    Float
+  timestamp  DateTime? @default(now())
+
+  @@map("sales_records")
+}
+
+model Setting {
+  key   String @id
+  value String
+
+  @@map("settings")
+}
+
+model LiquorVarianceEntry {
+  id                   String   @id @default(cuid())
+  startDate            DateTime @map("start_date")
+  endDate              DateTime @map("end_date")
+  itemName             String   @map("item_name")
+  boughtBottles        Int      @map("bought_bottles")
+  soldBottles          Int      @map("sold_bottles")
+  beginOnHandBottles   Int?     @map("begin_on_hand_bottles")
+  endOnHandBottles     Int?     @map("end_on_hand_bottles")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  @@map("liquor_variance_entries")
+}
