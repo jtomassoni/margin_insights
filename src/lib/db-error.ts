@@ -13,8 +13,11 @@ export function getDbErrorMessage(e: unknown, fallback: string): string {
   if (code === 'P1002' || message.includes('Connection timed out')) {
     return 'Database connection timed out. Ensure DATABASE_URL uses the pooled connection for Vercel/serverless.';
   }
-  if (code === 'P1003' || message.includes('does not exist')) {
-    return 'Database not found. Verify DATABASE_URL and run migrations.';
+  if (code === 'P1003') {
+    return 'Database not found. Verify DATABASE_URL points to the correct database.';
+  }
+  if (message.includes('does not exist')) {
+    return 'Database schema missing. Run: npx prisma migrate deploy';
   }
   if (code === 'P2002' || message.includes('Unique constraint')) {
     return 'A record with this value already exists.';
