@@ -38,7 +38,7 @@ const LoginContent = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const callbackUrl = searchParams.get('callbackUrl') || searchParams.get('redirectTo') || '/login';
+  const callbackUrl = searchParams.get('callbackUrl') || searchParams.get('redirectTo') || '/auth/redirect';
 
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

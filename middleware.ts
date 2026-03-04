@@ -80,10 +80,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL(`/dashboard/${businessSlug}`, request.url));
     }
     if (slug && !businessSlug) {
-      // Owner has no business slug (not in DB) — redirect to login
-      const signInUrl = new URL('/login', request.url);
-      signInUrl.searchParams.set('callbackUrl', `/dashboard/${slug}`);
-      return NextResponse.redirect(signInUrl);
+      // Owner has no business slug (new user) — redirect to signup
+      return NextResponse.redirect(new URL('/signup', request.url));
     }
   }
 
