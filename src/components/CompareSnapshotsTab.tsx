@@ -4,6 +4,18 @@
  * Compare cost snapshots — see how ingredient costs have changed over time.
  */
 import { useCallback, useEffect, useState } from 'react';
+
+function useIsMobile(breakpoint = 600) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    setIsMobile(mq.matches);
+    const handler = () => setIsMobile(mq.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [breakpoint]);
+  return isMobile;
+}
 import type { Ingredient } from '@/insight-engine/models/Ingredient';
 
 interface SnapshotSummary {
@@ -20,6 +32,14 @@ function formatDateRange(start: string | null, end: string | null): string {
   const s = new Date(start);
   const e = new Date(end);
   return `${s.toLocaleDateString()} – ${e.toLocaleDateString()}`;
+}
+
+/** Shorter format for mobile: "2/28–3/30" */
+function formatDateRangeShort(start: string | null, end: string | null): string {
+  if (!start || !end) return '';
+  const s = new Date(start);
+  const e = new Date(end);
+  return `${s.getMonth() + 1}/${s.getDate()}–${e.getMonth() + 1}/${e.getDate()}`;
 }
 
 function snapshotDisplayLabel(s: SnapshotSummary): string {
@@ -52,6 +72,11 @@ function formatCreatedAt(created_at: string): string {
     minute: '2-digit',
     hour12: true,
   });
+}
+
+/** Shorter format for mobile header: "Mar 3" */
+function formatCreatedAtShort(created_at: string): string {
+  return new Date(created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 function snapshotDetailDisplayLabel(s: SnapshotDetail | null): string {
@@ -147,19 +172,32 @@ export default function CompareSnapshotsTab({
   const mapA = buildCostMap(sourceA, snapshotA, ingredients);
   const mapB = buildCostMap(sourceB, snapshotB, ingredients);
 
+  const isMobile = useIsMobile();
   const labelA = sourceA.type === 'current' ? 'Current costs' : snapshotDetailDisplayLabel(snapshotA);
   const labelB = sourceB.type === 'current' ? 'Current costs' : snapshotDetailDisplayLabel(snapshotB);
+  const labelAShort = sourceA.type === 'snapshot' && snapshotA
+    ? formatDateRangeShort(snapshotA.start_date, snapshotA.end_date) || 'Snapshot'
+    : labelA;
+  const labelBShort = sourceB.type === 'snapshot' && snapshotB
+    ? formatDateRangeShort(snapshotB.start_date, snapshotB.end_date) || 'Snapshot'
+    : labelB;
 
-  const renderSnapshotHeader = (label: string, snapshot: SnapshotDetail | null) => {
+  const renderSnapshotHeader = (label: string, shortLabel: string, snapshot: SnapshotDetail | null) => {
+    const primary = isMobile ? shortLabel : label;
     if (snapshot) {
       return (
         <span className="compare-snapshots-th-content">
-          <span className="compare-snapshots-th-primary">{label}</span>
-          <span className="compare-snapshots-th-sub">Created {formatCreatedAt(snapshot.created_at)}</span>
+          <span className="compare-snapshots-th-primary">{primary}</span>
+          {!isMobile && (
+            <span className="compare-snapshots-th-sub">Created {formatCreatedAt(snapshot.created_at)}</span>
+          )}
+          {isMobile && (
+            <span className="compare-snapshots-th-sub">{formatCreatedAtShort(snapshot.created_at)}</span>
+          )}
         </span>
       );
     }
-    return label;
+    return primary;
   };
 
   const allIds = new Set([...Array.from(mapA.keys()), ...Array.from(mapB.keys())]);
@@ -198,6 +236,7 @@ export default function CompareSnapshotsTab({
         <label className="compare-snapshots-picker">
           <span className="compare-snapshots-picker-label">Compare</span>
           <select
+            aria-label="Compare this period"
             value={sourceA.type === 'current' ? 'current' : sourceA.id}
             onChange={(e) => {
               const v = e.target.value;
@@ -218,6 +257,7 @@ export default function CompareSnapshotsTab({
         <label className="compare-snapshots-picker">
           <span className="compare-snapshots-picker-label">To</span>
           <select
+            aria-label="To this period"
             value={sourceB.type === 'current' ? 'current' : sourceB.id}
             onChange={(e) => {
               const v = e.target.value;
@@ -244,28 +284,28 @@ export default function CompareSnapshotsTab({
 
       {hasSnapshots && canCompare && rows.length > 0 && (
         <>
-          <div className="compare-snapshots-summary">
-            <strong>Cost drift:</strong>{' '}
-            <span className={totalChange > 0 ? 'compare-snapshots-up' : totalChange < 0 ? 'compare-snapshots-down' : ''}>
-              {totalChange >= 0 ? '+' : ''}
-              ${totalChange.toFixed(2)} ({totalChange >= 0 ? '+' : ''}
-              {totalChangePct.toFixed(1)}%)
+          <div className={`compare-snapshots-summary ${totalChange > 0 ? 'compare-snapshots-summary--up' : totalChange < 0 ? 'compare-snapshots-summary--down' : ''}`}>
+            <span className="compare-snapshots-summary-label">Cost drift</span>
+            <span className={`compare-snapshots-summary-value ${totalChange > 0 ? 'compare-snapshots-up' : totalChange < 0 ? 'compare-snapshots-down' : ''}`}>
+              {totalChange >= 0 ? '+' : ''}${totalChange.toFixed(2)} ({totalChange >= 0 ? '+' : ''}{totalChangePct.toFixed(1)}%)
             </span>
-            {' '}from {labelA} to {labelB}
+            <span className="compare-snapshots-summary-context">
+              {isMobile ? labelAShort : labelA} → {isMobile ? labelBShort : labelB}
+            </span>
           </div>
-          <div className="table-wrap">
-            <table>
+          <div className="table-wrap compare-snapshots-table-wrap">
+            <table className="compare-snapshots-table">
               <thead>
                 <tr>
-                  <th>Ingredient</th>
+                  <th className="compare-snapshots-th-ingredient">Ingredient</th>
                   <th className="num compare-snapshots-th">
-                    {renderSnapshotHeader(labelA, sourceA.type === 'snapshot' ? snapshotA : null)}
+                    {renderSnapshotHeader(labelA, labelAShort, sourceA.type === 'snapshot' ? snapshotA : null)}
                   </th>
                   <th className="num compare-snapshots-th">
-                    {renderSnapshotHeader(labelB, sourceB.type === 'snapshot' ? snapshotB : null)}
+                    {renderSnapshotHeader(labelB, labelBShort, sourceB.type === 'snapshot' ? snapshotB : null)}
                   </th>
-                  <th className="num">Change $</th>
-                  <th className="num">Change %</th>
+                  <th className="num compare-snapshots-th-change">Change $</th>
+                  <th className="num compare-snapshots-th-change">Change %</th>
                 </tr>
               </thead>
               <tbody>

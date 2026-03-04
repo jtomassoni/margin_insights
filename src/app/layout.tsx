@@ -24,7 +24,9 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
       />
     </head>
     <body>
-      <AuthSessionProvider>{children}</AuthSessionProvider>
+      <div className="app-root">
+        <AuthSessionProvider>{children}</AuthSessionProvider>
+      </div>
     </body>
   </html>
 );

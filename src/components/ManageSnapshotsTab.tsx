@@ -4,6 +4,18 @@
  * Manage cost snapshots — list, edit date ranges, delete.
  */
 import { useCallback, useEffect, useState } from 'react';
+
+function useIsMobile(breakpoint = 600) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    setIsMobile(mq.matches);
+    const handler = () => setIsMobile(mq.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [breakpoint]);
+  return isMobile;
+}
 import { useSnapshotRefresh } from '@/context/SnapshotRefreshContext';
 
 interface SnapshotSummary {
@@ -22,7 +34,16 @@ function formatDateRange(start: string | null, end: string | null): string {
   return `${s.toLocaleDateString()} – ${e.toLocaleDateString()}`;
 }
 
+/** Shorter for mobile: "2/28–3/30" */
+function formatDateRangeShort(start: string | null, end: string | null): string {
+  if (!start || !end) return '—';
+  const s = new Date(start);
+  const e = new Date(end);
+  return `${s.getMonth() + 1}/${s.getDate()}–${e.getMonth() + 1}/${e.getDate()}`;
+}
+
 export default function ManageSnapshotsTab() {
+  const isMobile = useIsMobile();
   const snapshotRefresh = useSnapshotRefresh();
   const refreshTrigger = snapshotRefresh?.snapshotCreatedCount ?? 0;
   const [snapshots, setSnapshots] = useState<SnapshotSummary[]>([]);
@@ -112,27 +133,27 @@ export default function ManageSnapshotsTab() {
         Assign date ranges to snapshots so Liquor variance and insights can correlate costs with sales by period.
       </p>
       {snapshots.length === 0 ? (
-        <p className="manage-snapshots-empty">No cost snapshots yet. Create one using the button in the header.</p>
+        <p className="manage-snapshots-empty">No cost snapshots yet. Create one from the Menu & Recipes page (Manage ingredients tab).</p>
       ) : (
-        <div className="table-wrap">
-          <table>
+        <div className="table-wrap manage-snapshots-table-wrap">
+          <table className="manage-snapshots-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Date range</th>
-                <th>Created</th>
-                <th>Ingredients</th>
-                <th></th>
+                <th className="manage-snapshots-th-name">Name</th>
+                <th className="manage-snapshots-th-range">{isMobile ? 'Range' : 'Date range'}</th>
+                <th className="manage-snapshots-th-created">Created</th>
+                <th className="manage-snapshots-th-ingr num">{isMobile ? '#' : 'Ingredients'}</th>
+                <th className="manage-snapshots-th-actions"></th>
               </tr>
             </thead>
             <tbody>
               {snapshots.map((s) => (
                 <tr key={s.id}>
-                  <td>{s.name}</td>
-                  <td>{formatDateRange(s.start_date, s.end_date)}</td>
-                  <td>{new Date(s.created_at).toLocaleDateString()}</td>
-                  <td className="num">{s.line_count}</td>
-                  <td>
+                  <td className="manage-snapshots-td-name">{s.name}</td>
+                  <td className="manage-snapshots-td-range">{isMobile ? formatDateRangeShort(s.start_date, s.end_date) : formatDateRange(s.start_date, s.end_date)}</td>
+                  <td className="manage-snapshots-td-created">{new Date(s.created_at).toLocaleDateString()}</td>
+                  <td className="num manage-snapshots-td-ingr">{s.line_count}</td>
+                  <td className="manage-snapshots-td-actions">
                     <button
                       type="button"
                       className="btn btn-secondary btn-sm"
@@ -147,7 +168,7 @@ export default function ManageSnapshotsTab() {
                       onClick={() => handleDelete(s.id)}
                       disabled={deleting === s.id}
                     >
-                      {deleting === s.id ? 'Deleting…' : 'Delete'}
+                      {deleting === s.id ? '…' : (isMobile ? 'Del' : 'Delete')}
                     </button>
                   </td>
                 </tr>

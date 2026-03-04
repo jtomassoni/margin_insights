@@ -2,9 +2,15 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function LandingHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Prevent body scroll when menu is open and close on resize to desktop
   useEffect(() => {
@@ -33,40 +39,46 @@ export default function LandingHeader() {
     </>
   );
 
+  const mobileNavContent = menuOpen && (
+    <div
+      id="landing-nav-mobile"
+      className="landing-nav-mobile landing"
+      data-open="true"
+      aria-hidden="false"
+    >
+      <nav className="landing-nav-mobile-inner" aria-label="Main">
+        {fullNavLinks}
+      </nav>
+    </div>
+  );
+
   return (
-    <header className="landing-header">
-      <div className="landing-header-inner">
-        <Link href="/" className="landing-brand">Margin Insights</Link>
-        <nav className="landing-nav-desktop" aria-label="Main">
-          <Link href="#how">How it works</Link>
-          <Link href="#report">Example report</Link>
-          <Link href="#pricing">Pricing</Link>
-          <Link href="#faq">FAQ</Link>
-          <Link href="/login" className="btn btn-primary">Log in</Link>
-        </nav>
-        <button
-          type="button"
-          className="landing-nav-toggle"
-          aria-expanded={menuOpen}
-          aria-controls="landing-nav-mobile"
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          <span className="landing-nav-toggle-bar" />
-          <span className="landing-nav-toggle-bar" />
-          <span className="landing-nav-toggle-bar" />
-        </button>
-      </div>
-      <div
-        id="landing-nav-mobile"
-        className="landing-nav-mobile"
-        data-open={menuOpen}
-        aria-hidden={!menuOpen}
-      >
-        <nav className="landing-nav-mobile-inner" aria-label="Main">
-          {fullNavLinks}
-        </nav>
-      </div>
-    </header>
+    <>
+      <header className="landing-header">
+        <div className="landing-header-inner">
+          <Link href="/" className="landing-brand">Margin Insights</Link>
+          <nav className="landing-nav-desktop" aria-label="Main">
+            <Link href="#how">How it works</Link>
+            <Link href="#report">Example report</Link>
+            <Link href="#pricing">Pricing</Link>
+            <Link href="#faq">FAQ</Link>
+            <Link href="/login" className="btn btn-primary">Log in</Link>
+          </nav>
+          <button
+            type="button"
+            className="landing-nav-toggle"
+            aria-expanded={menuOpen}
+            aria-controls="landing-nav-mobile"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            <span className="landing-nav-toggle-bar" />
+            <span className="landing-nav-toggle-bar" />
+            <span className="landing-nav-toggle-bar" />
+          </button>
+        </div>
+      </header>
+      {mounted && mobileNavContent && createPortal(mobileNavContent, document.body)}
+    </>
   );
 }

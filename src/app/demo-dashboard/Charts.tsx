@@ -1,15 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+const useIsMobile = (maxWidth = 600) => {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${maxWidth}px)`);
+    setIsMobile(mq.matches);
+    const handler = () => setIsMobile(mq.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [maxWidth]);
+  return isMobile;
+};
 import type { ItemMarginRow } from '@/insight-engine/services/marginEngine';
 import type { ProfitLeakItem } from '@/insight-engine/reports/profitLeakReport';
 
 const clampTooltip = (x: number, y: number, w = 260, h = 180) => {
   if (typeof window === 'undefined') return { left: x + 12, top: y + 8 };
-  const pad = 8;
+  const pad = 20;
   let left = x + 12;
   let top = y + 8;
-  if (left + w > window.innerWidth - pad) left = window.innerWidth - w - pad;
+  // Flip to left of cursor when tooltip would hit right edge
+  if (left + w > window.innerWidth - pad) {
+    const leftOfCursor = x - 12 - w;
+    left = leftOfCursor >= pad ? leftOfCursor : window.innerWidth - w - pad;
+  }
   if (left < pad) left = pad;
   if (top + h > window.innerHeight - pad) top = window.innerHeight - h - pad;
   if (top < pad) top = pad;
@@ -27,12 +43,17 @@ const marginColor = (pct: number, targetPct: number) => {
 export const ContributionBarChart = ({
   rows,
   targetMarginPct,
-  maxBars = 12,
+  maxBars: maxBarsProp = 12,
 }: {
   rows: ItemMarginRow[];
   targetMarginPct: number;
   maxBars?: number;
 }) => {
+  const isMobile = useIsMobile();
+  const maxBars = isMobile ? 6 : maxBarsProp;
+  const barHeight = isMobile ? 16 : 20;
+  const gap = isMobile ? 4 : 6;
+
   const [hovered, setHovered] = useState<ItemMarginRow | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
@@ -41,8 +62,6 @@ export const ContributionBarChart = ({
     .sort((a, b) => b.contribution_margin - a.contribution_margin)
     .slice(0, maxBars);
   const max = Math.max(...sorted.map((r) => r.contribution_margin), 1);
-  const barHeight = 20;
-  const gap = 6;
   const height = sorted.length * (barHeight + gap) - gap;
   const barStart = 110;
   const barMaxWidth = 140;
@@ -83,7 +102,7 @@ export const ContributionBarChart = ({
               }}
               style={{ cursor: 'pointer' }}
             >
-              <text x="0" y={y + 14} fontSize="11" fill="var(--text)" className="chart-label">
+              <text x="0" y={y + barHeight - 4} fontSize="11" fill="var(--text)" className="chart-label">
                 {r.item_name.length > 18 ? r.item_name.slice(0, 17) + '…' : r.item_name}
               </text>
               <rect
@@ -97,7 +116,7 @@ export const ContributionBarChart = ({
                 stroke={isHover ? 'var(--text-muted)' : 'transparent'}
                 strokeWidth={1}
               />
-              <text x={barStart + w + 4} y={y + 14} fontSize="10" fill="var(--text-muted)">
+              <text x={barStart + w + 4} y={y + barHeight - 4} fontSize="10" fill="var(--text-muted)">
                 ${r.contribution_margin.toFixed(0)}
               </text>
             </g>
@@ -139,22 +158,25 @@ export const ContributionBarChart = ({
 
 /** Horizontal bar chart: estimated lost profit per month (leak items). */
 export const LostProfitBarChart = ({ items }: { items: ProfitLeakItem[] }) => {
+  const isMobile = useIsMobile();
   const [hovered, setHovered] = useState<ProfitLeakItem | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
   if (items.length === 0) return null;
-  const sorted = [...items].sort((a, b) => b.estimated_lost_profit_per_month - a.estimated_lost_profit_per_month).slice(0, 10);
+  const maxItems = isMobile ? 6 : 10;
+  const sorted = [...items].sort((a, b) => b.estimated_lost_profit_per_month - a.estimated_lost_profit_per_month).slice(0, maxItems);
   const max = Math.max(...sorted.map((i) => i.estimated_lost_profit_per_month), 1);
-  const barHeight = 22;
-  const gap = 6;
+  const barHeight = isMobile ? 18 : 22;
+  const gap = isMobile ? 4 : 6;
   const height = sorted.length * (barHeight + gap) - gap;
-  const barStart = 110;
-  const barMaxWidth = 140;
-  const chartWidth = 280;
+  const barStart = isMobile ? 90 : 110;
+  const barMaxWidth = isMobile ? 100 : 140;
+  const chartWidth = isMobile ? 200 : 280;
+  const labelMaxLen = isMobile ? 14 : 18;
 
   return (
     <div className="chart-card">
-      <h4 className="chart-title" title="Estimated profit left on the table per month if prices stay below target">Where the leak is biggest (est. $/month)</h4>
+      <h4 className="chart-title" title="Estimated profit left on the table per month if prices stay below target">Where the leak is biggest</h4>
       <svg
         width="100%"
         height={height}
@@ -186,8 +208,8 @@ export const LostProfitBarChart = ({ items }: { items: ProfitLeakItem[] }) => {
               }}
               style={{ cursor: 'pointer' }}
             >
-              <text x="0" y={y + 14} fontSize="11" fill="var(--text)" className="chart-label">
-                {i.item_name.length > 18 ? i.item_name.slice(0, 17) + '…' : i.item_name}
+              <text x="0" y={y + (isMobile ? 12 : 14)} fontSize={isMobile ? 10 : 11} fill="var(--text)" className="chart-label">
+                {i.item_name.length > labelMaxLen ? i.item_name.slice(0, labelMaxLen - 1) + '…' : i.item_name}
               </text>
               <rect
                 x={barStart}
@@ -200,7 +222,7 @@ export const LostProfitBarChart = ({ items }: { items: ProfitLeakItem[] }) => {
                 stroke={isHover ? 'var(--text-muted)' : 'transparent'}
                 strokeWidth={1}
               />
-              <text x={barStart + w + 4} y={y + 14} fontSize="10" fill="var(--text-muted)">
+              <text x={barStart + w + 4} y={y + (isMobile ? 12 : 14)} fontSize={isMobile ? 9 : 10} fill="var(--text-muted)">
                 ${i.estimated_lost_profit_per_month.toFixed(0)}
               </text>
             </g>
@@ -250,7 +272,9 @@ export const LostProfitBarChart = ({ items }: { items: ProfitLeakItem[] }) => {
 type DonutSegment = { name: string; value: number };
 
 /** Donut: revenue share by item (top N, rest as "Other"). */
-export const RevenueDonut = ({ rows, topN = 8 }: { rows: ItemMarginRow[]; topN?: number }) => {
+export const RevenueDonut = ({ rows, topN: topNProp = 8 }: { rows: ItemMarginRow[]; topN?: number }) => {
+  const isMobile = useIsMobile();
+  const topN = isMobile ? 5 : topNProp;
   const [hovered, setHovered] = useState<DonutSegment | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
@@ -428,9 +452,6 @@ export const MarginRealityRadar = ({
   const overallScore = (pctRevenueHigh + pctUnitsHigh + weightedMarginCapped + (100 - pctRevenueLow)) / 4;
   const fillColor = overallScore >= 60 ? 'var(--success)' : overallScore >= 35 ? 'var(--warn)' : 'var(--danger)';
 
-  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
-  const [showTooltip, setShowTooltip] = useState(false);
-
   return (
     <div className="chart-card margin-reality-radar">
       <h4 className="chart-title" title="Where your sales and revenue really sit — high vs low margin">
@@ -505,17 +526,10 @@ export const MarginRealityRadar = ({
           <path
             d={dataPath}
             fill={fillColor}
-            fillOpacity={showTooltip ? 0.5 : 0.35}
+            fillOpacity={0.35}
             stroke={fillColor}
             strokeWidth="1.5"
             strokeLinejoin="round"
-            style={{ cursor: 'pointer' }}
-            onMouseEnter={(e) => {
-              setShowTooltip(true);
-              setTooltipPos({ x: e.clientX, y: e.clientY });
-            }}
-            onMouseMove={(e) => setTooltipPos({ x: e.clientX, y: e.clientY })}
-            onMouseLeave={() => setShowTooltip(false)}
           />
           {axes.map((a, i) => {
             const p = toPoint(i * angleStep, radius + 14);
@@ -544,21 +558,6 @@ export const MarginRealityRadar = ({
           ))}
         </ul>
       </div>
-      {showTooltip && (
-        <div
-          className="quadrant-tooltip"
-          style={{ position: 'fixed', ...clampTooltip(tooltipPos.x, tooltipPos.y, 240, 180), pointerEvents: 'none' }}
-          role="tooltip"
-        >
-          <div className="quadrant-tooltip-name">Your margin mix</div>
-          {axes.map((a, i) => (
-            <div className="quadrant-tooltip-row" key={i}>
-              <span>{a.label}</span>
-              <span className="num">{a.value.toFixed(1)}%</span>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 };

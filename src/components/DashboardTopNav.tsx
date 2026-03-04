@@ -8,7 +8,6 @@ function navItemsFor(slug: string) {
     { href: `/dashboard/${slug}`, label: 'Overview', labelShort: 'Overview' },
     { href: `/dashboard/${slug}/reporting`, label: 'Reporting', labelShort: 'Reports' },
     { href: `/dashboard/${slug}/ingredients`, label: 'Menu & Recipes', labelShort: 'Menu' },
-    { href: `/dashboard/${slug}/sales`, label: 'Sales', labelShort: 'Sales' },
   ] as const;
 }
 

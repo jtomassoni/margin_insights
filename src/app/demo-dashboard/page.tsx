@@ -733,7 +733,7 @@ const DashboardContent = () => {
                       <p className="profit-leak-table-hint">
                         Raise prices or shrink portions slightly to bridge these margin gaps.
                       </p>
-                      <div className="table-wrap">
+                      <div className="table-wrap profit-leak-table-wrap">
                         <table>
                           <thead>
                             <tr>
@@ -802,10 +802,10 @@ const DashboardContent = () => {
                   const watchNames = [...needAttention, ...bad].slice(0, 3).map((r) => r.item_name).join(', ');
                   return (
                     <>
-                      <div className="actionable-strip">
-                        <strong>At a glance:</strong> Your best contributors (green) are {topNames || '—'}. {watchNames ? `Watch: ${watchNames} — raise prices, shrink portions slightly, or reduce cost to hit target margin.` : 'Most items are at or above target margin.'}
-                      </div>
                       <div className="dashboard-charts-grid">
+                        <div className="margin-summary-card">
+                          <strong>At a glance:</strong> Your best contributors (green) are {topNames || '—'}. {watchNames ? `Watch: ${watchNames} — raise prices, shrink portions slightly, or reduce cost to hit target margin.` : 'Most items are at or above target margin.'}
+                        </div>
                         <ContributionBarChart rows={marginRowsWithPrices} targetMarginPct={targetPct} />
                         <RevenueDonut rows={marginRowsWithPrices} />
                         <MarginRealityRadar rows={marginRowsWithPrices} targetMarginPct={targetPct} />
