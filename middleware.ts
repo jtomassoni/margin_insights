@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { getSignupCookieFromRequest, verifySignupCookie } from '@/lib/signup-cookie';
 
 const PROTECTED_PATHS = ['/dashboard', '/admin', '/demo-dashboard'];
 
@@ -80,7 +81,11 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL(`/dashboard/${businessSlug}`, request.url));
     }
     if (slug && !businessSlug) {
-      // Owner has no business slug (new user) — redirect to signup
+      // Owner has no business slug — allow if valid post-signup cookie
+      const cookieValue = getSignupCookieFromRequest(request.headers.get('cookie'));
+      if (cookieValue && (await verifySignupCookie(cookieValue, slug))) {
+        return NextResponse.next();
+      }
       return NextResponse.redirect(new URL('/signup', request.url));
     }
   }

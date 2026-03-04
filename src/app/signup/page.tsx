@@ -42,14 +42,14 @@ export default function SignupPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: trimmed }),
+        credentials: 'include',
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(data.error ?? 'Failed to create business');
       }
-      // Re-trigger Google sign-in to refresh JWT with new businessSlug
-      const callbackUrl = encodeURIComponent(data.redirect ?? `/dashboard/${data.slug}`);
-      window.location.href = `/api/auth/signin/google?callbackUrl=${callbackUrl}`;
+      // Redirect to dashboard; middleware allows access via signed cookie
+      window.location.href = data.redirect ?? `/dashboard/${data.slug}`;
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
       setSubmitting(false);

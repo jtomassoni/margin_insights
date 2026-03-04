@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/db';
 import { authOptions } from '@/lib/auth-config';
 import { isAdminEmail } from '@/lib/auth';
+import { createSignupCookie } from '@/lib/signup-cookie';
 
 export const dynamic = 'force-dynamic';
 
@@ -75,10 +76,22 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({
+    const { name: cookieName, value: cookieValue, options } = await createSignupCookie(business.slug);
+    const cookieParts = [
+      `${cookieName}=${encodeURIComponent(cookieValue)}`,
+      `Path=${options.path}`,
+      `HttpOnly`,
+      `SameSite=${options.sameSite}`,
+      `Max-Age=${options.maxAge}`,
+    ];
+    if (options.secure) cookieParts.push('Secure');
+
+    const res = NextResponse.json({
       slug: business.slug,
       redirect: `/dashboard/${business.slug}`,
     });
+    res.headers.set('Set-Cookie', cookieParts.join('; '));
+    return res;
   } catch (e) {
     console.error('Signup POST:', e);
     return NextResponse.json(
