@@ -18,6 +18,7 @@ export default function AdminBusinessesPage() {
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -63,6 +64,34 @@ export default function AdminBusinessesPage() {
     }
   };
 
+  const handleDelete = async (e: React.MouseEvent, business: Business) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (
+      !confirm(
+        `Delete "${business.name}" and all ${business.user_count} associated user(s)? This cannot be undone.`
+      )
+    ) {
+      return;
+    }
+    setDeletingId(business.id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/businesses/${business.id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? 'Failed to delete');
+      }
+      load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to delete');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="admin-section">
       <h1 className="admin-section-title">Businesses</h1>
@@ -101,6 +130,7 @@ export default function AdminBusinessesPage() {
                 <th>Slug</th>
                 <th className="num">Users</th>
                 <th>Created</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -132,6 +162,18 @@ export default function AdminBusinessesPage() {
                   <td><code>{b.slug}</code></td>
                   <td className="num">{b.user_count}</td>
                   <td>{new Date(b.created_at).toLocaleDateString()}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-sm"
+                      onClick={(e) => handleDelete(e, b)}
+                      disabled={deletingId === b.id}
+                      title={`Delete ${b.name} and ${b.user_count} user(s)`}
+                      aria-label={`Delete ${b.name}`}
+                    >
+                      {deletingId === b.id ? 'Deleting…' : 'Delete'}
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

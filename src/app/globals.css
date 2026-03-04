@@ -1908,6 +1908,42 @@ tr:hover td {
   font-size: 0.9rem;
   color: var(--text-muted);
 }
+.admin-demo-mode {
+  margin-top: 2rem;
+  padding: 1.25rem;
+  background: hsl(var(--muted) / 0.3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.admin-demo-mode-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.admin-demo-mode-desc {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.admin-demo-mode-status {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+.admin-demo-mode-label {
+  font-weight: 600;
+  color: var(--text);
+  margin-right: 0.5rem;
+}
+.admin-demo-mode-value {
+  color: var(--accent);
+}
+.admin-demo-mode-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
 
 .admin-section {
   padding: 0.5rem 0;
@@ -2926,6 +2962,19 @@ tr:hover td {
   background: rgba(255,255,255,0.06);
   border-color: var(--text-muted);
   color: var(--text);
+}
+.btn-danger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+}
+.btn-danger:hover:not(:disabled) {
+  background: hsl(0 72% 51% / 0.15);
+  border-color: var(--danger);
+  color: var(--danger);
 }
 .dashboard .btn-primary {
   padding: 0.5rem 1rem;
