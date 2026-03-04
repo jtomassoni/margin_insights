@@ -1,11 +1,9 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { signIn, getSession } from 'next-auth/react';
-
-/** Default redirect for owner: /dashboard (invalid) — login will redirect to /dashboard/{slug} */
+import { signIn } from 'next-auth/react';
 
 const GoogleIcon = () => (
   <svg className="auth-google-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden>
@@ -28,50 +26,11 @@ const GoogleIcon = () => (
   </svg>
 );
 
-const isLocal = process.env.NODE_ENV === 'development';
-
 const LoginContent = () => {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const callbackUrl = searchParams.get('callbackUrl') || searchParams.get('redirectTo') || '/auth/redirect';
-
-  const handleCredentialsSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setError(null);
-    try {
-      const result = await signIn('credentials', {
-        username,
-        password,
-        redirect: false,
-        callbackUrl,
-      });
-      if (result?.error) {
-        setError('Could not sign in.');
-        setSubmitting(false);
-        return;
-      }
-      const session = await getSession();
-      const role = (session?.user as { role?: string })?.role;
-      const businessSlug = (session?.user as { businessSlug?: string | null })?.businessSlug;
-      const targetUrl =
-        role === 'admin'
-          ? '/dashboard'
-          : businessSlug
-            ? `/dashboard/${businessSlug}`
-            : '/signup';
-      router.push(targetUrl);
-      router.refresh();
-    } catch {
-      setError('Could not sign in.');
-      setSubmitting(false);
-    }
-  };
 
   return (
     <div className="landing auth-page">
@@ -103,40 +62,6 @@ const LoginContent = () => {
           <p className="auth-google-note">
             Gmail accounts are free and secure. That&apos;s why we require Google sign-in — it helps keep your data safe and prevents spam.
           </p>
-          {isLocal && (
-            <>
-              <p className="auth-divider">or (local dev)</p>
-              <p className="auth-dev-hint">
-                Test accounts: <code>admin</code> / <code>test</code> • <code>owner</code> / <code>test</code>
-              </p>
-              <form onSubmit={handleCredentialsSubmit} className="auth-form">
-                <label className="auth-label">
-                  <span>Username</span>
-                  <input
-                    type="text"
-                    autoComplete="username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                  />
-                </label>
-                <label className="auth-label">
-                  <span>Password</span>
-                  <input
-                    type="password"
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </label>
-                {error && <p className="auth-error">{error}</p>}
-                <button type="submit" className="btn btn-secondary auth-submit" disabled={submitting}>
-                  {submitting ? 'Signing in…' : 'Admin / owner sign in'}
-                </button>
-              </form>
-            </>
-          )}
         </section>
       </main>
     </div>
