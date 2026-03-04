@@ -2,14 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, BarChart3, UtensilsCrossed, ShoppingCart } from 'lucide-react';
+import { LayoutDashboard, BarChart3, UtensilsCrossed } from 'lucide-react';
 
 function navItemsFor(slug: string) {
   return [
     { href: `/dashboard/${slug}`, label: 'Overview', icon: LayoutDashboard },
     { href: `/dashboard/${slug}/reporting`, label: 'Reporting', icon: BarChart3 },
     { href: `/dashboard/${slug}/ingredients`, label: 'Menu', icon: UtensilsCrossed },
-    { href: `/dashboard/${slug}/sales`, label: 'Sales', icon: ShoppingCart },
   ] as const;
 }
 

@@ -195,24 +195,29 @@ export default function DashboardOverviewPage() {
         </section>
 
         {/* 5. CATEGORY PERFORMANCE */}
-        <section className="overview-section">
+        <section className="overview-section overview-section--categories overview-section--full-width">
           <h2 className="overview-section-title">Category Performance</h2>
           <div className="overview-categories">
-            {categoryMargins.slice(0, 6).map((c) => (
-              <div key={c.category} className="overview-category-row">
-                <span className="overview-category-name">{c.category}</span>
-                <MarginBadge pct={c.margin_pct} />
-              </div>
-            ))}
+            {categoryMargins.slice(0, 4).map((c) => {
+              const status = c.margin_pct >= 70 ? 'green' : c.margin_pct >= 55 ? 'yellow' : 'red';
+              return (
+                <div key={c.category} className="overview-category-row">
+                  <div className="overview-category-header">
+                    <span className="overview-category-name">{c.category}</span>
+                    <MarginBadge pct={c.margin_pct} />
+                  </div>
+                  <div className="overview-category-bar" role="presentation">
+                    <div
+                      className={`overview-category-bar-fill overview-category-bar-fill--${status}`}
+                      style={{ width: `${Math.min(100, Math.max(0, c.margin_pct))}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
           <Link href={`/dashboard/${slug}/reporting?tab=margins`} className="overview-view-details">View details →</Link>
         </section>
-
-        <p className="overview-footer-hint">
-          Jump into <Link href={`/dashboard/${slug}/reporting`}>Reporting</Link> for details,{' '}
-          <Link href={`/dashboard/${slug}/sales`}>enter sales data</Link>, or update your{' '}
-          <Link href={`/dashboard/${slug}/ingredients`}>menu &amp; recipes</Link>.
-        </p>
       </main>
     </div>
   );

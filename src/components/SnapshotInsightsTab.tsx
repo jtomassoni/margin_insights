@@ -5,6 +5,11 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 
+/** Shorten "Jan 2026 – Feb 2026" to "Jan–Feb" for mobile */
+function formatPeriodShort(period: string): string {
+  return period.replace(/\s*\d{4}\s*/g, '').replace(/\s+/g, ' ').trim() || period;
+}
+
 interface SeasonalInsight {
   type: 'seasonal_sales';
   item_name: string;
@@ -37,7 +42,20 @@ interface InsightsResponse {
   snapshots_with_ranges: number;
 }
 
+function useIsMobile(breakpoint = 600) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    setIsMobile(mq.matches);
+    const handler = () => setIsMobile(mq.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 export default function SnapshotInsightsTab() {
+  const isMobile = useIsMobile();
   const [data, setData] = useState<InsightsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,7 +97,15 @@ export default function SnapshotInsightsTab() {
   const { insights, has_timestamped_sales, snapshots_with_ranges } = data;
 
   const seasonal = insights.filter((i): i is SeasonalInsight => i.type === 'seasonal_sales');
-  const costTrends = insights.filter((i): i is CostTrendInsight => i.type === 'cost_trend');
+  const costTrendsRaw = insights.filter((i): i is CostTrendInsight => i.type === 'cost_trend');
+  // Deduplicate: same ingredient, same periods, same change
+  const seen = new Set<string>();
+  const costTrends = costTrendsRaw.filter((i) => {
+    const key = `${i.ingredient_name}|${i.period_a}|${i.period_b}|${i.change_pct}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 
   const needsSetup =
     snapshots_with_ranges < 2 ||
@@ -87,11 +113,6 @@ export default function SnapshotInsightsTab() {
 
   return (
     <div className="snapshot-insights-tab">
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
-        <button type="button" className="btn btn-secondary btn-sm" onClick={load}>
-          Refresh
-        </button>
-      </div>
       {needsSetup && (
         <div className="snapshot-insights-setup">
           <h4>To get insights</h4>
@@ -142,14 +163,21 @@ export default function SnapshotInsightsTab() {
           <p className="snapshot-insights-section-desc">
             Ingredients whose cost changed significantly between snapshot periods.
           </p>
-          <ul className="snapshot-insights-list">
+          <ul className="snapshot-insights-list snapshot-insights-list--cost">
             {costTrends.map((i, idx) => (
-              <li key={idx} className="snapshot-insights-item">
+              <li key={idx} className="snapshot-insights-item snapshot-insights-item--cost">
                 <span className={i.change_pct > 0 ? 'snapshot-insights-up' : 'snapshot-insights-down'}>
                   {i.change_pct > 0 ? '+' : ''}{i.change_pct.toFixed(0)}%
                 </span>
-                {' '}
-                {i.message}
+                <div className="snapshot-insights-cost-content">
+                  <span className="snapshot-insights-cost-name">{i.ingredient_name}</span>
+                  <span className="snapshot-insights-cost-detail">
+                    ${i.cost_a.toFixed(2)} → ${i.cost_b.toFixed(2)}
+                    <span className="snapshot-insights-cost-period">
+                      {isMobile ? `${formatPeriodShort(i.period_a)} → ${formatPeriodShort(i.period_b)}` : `${i.period_a} → ${i.period_b}`}
+                    </span>
+                  </span>
+                </div>
               </li>
             ))}
           </ul>

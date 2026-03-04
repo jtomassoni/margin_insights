@@ -347,8 +347,7 @@ export default function LiquorVarianceTab() {
         <div className="liquor-variance-require-snapshot">
           <p>
             <strong>Create a cost snapshot first</strong> to use liquor variance.
-            Snapshots establish your reporting period and cost baseline. Use the
-            Create cost snapshot button in the header.
+            Snapshots establish your reporting period and cost baseline. Create one from the Menu & Recipes page (Manage ingredients tab).
           </p>
         </div>
       )}

@@ -1,7 +1,10 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Copy, Pencil, Trash2 } from 'lucide-react';
 import AddItemModal from '@/components/AddItemModal';
+import CreateSnapshotModal from '@/components/CreateSnapshotModal';
 import type { Ingredient, IngredientKind } from '@/insight-engine/models/Ingredient';
 import { useDashboardData } from '@/context/DashboardDataContext';
 import { lineCost, lineDisplay } from '@/insight-engine/services/costCalculator';
@@ -131,16 +134,17 @@ function SearchableIngredientDropdown({
 }
 
 function NewIngredientModal({
-  kind,
+  initialKind = 'ingredient',
   onSave,
   onClose,
 }: {
-  kind: IngredientKind;
-  onSave: (name: string, unit: Ingredient['unit_type'], cost: number, bottleOz?: number) => void;
+  initialKind?: IngredientKind;
+  onSave: (name: string, unit: Ingredient['unit_type'], cost: number, kind: IngredientKind, bottleOz?: number) => void;
   onClose: () => void;
 }) {
+  const [kind, setKind] = useState<IngredientKind>(initialKind);
   const [name, setName] = useState('');
-  const [unit, setUnit] = useState<Ingredient['unit_type']>(kind === 'maintenance' ? 'each' : 'oz');
+  const [unit, setUnit] = useState<Ingredient['unit_type']>(initialKind === 'maintenance' ? 'each' : 'oz');
   const [cost, setCost] = useState('');
   const [bottleOz, setBottleOz] = useState('25.4');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -157,6 +161,11 @@ function NewIngredientModal({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [onClose]);
 
+  const handleKindChange = (newKind: IngredientKind) => {
+    setKind(newKind);
+    setUnit(newKind === 'maintenance' ? 'each' : 'oz');
+  };
+
   const costNum = Math.max(0, parseFloat(cost) || 0);
   const isValid = name.trim().length > 0;
 
@@ -169,7 +178,7 @@ function NewIngredientModal({
               return Number.isFinite(b) && b > 0 ? b : 25.4;
             })()
           : undefined;
-      onSave(name.trim(), unit, costNum, bottle);
+      onSave(name.trim(), unit, costNum, kind, bottle);
     }
   };
 
@@ -186,7 +195,7 @@ function NewIngredientModal({
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id="new-ingredient-modal-title" className="menu-item-add-modal-title">
-          {kind === 'maintenance' ? 'New maintenance cost' : kind === 'liquor' ? 'New liquor' : 'New ingredient'}
+          Add new
         </h2>
         <p className="menu-item-add-modal-desc">
           {kind === 'maintenance'
@@ -195,6 +204,19 @@ function NewIngredientModal({
               ? 'Add a spirit/liquor. Unit cost & bottle size feed liquor variance.'
               : 'Add a food or beverage ingredient. Set name, unit, and cost per unit.'}
         </p>
+        <label className="menu-item-add-modal-field">
+          <span className="menu-item-add-modal-label">Type</span>
+          <select
+            value={kind}
+            onChange={(e) => handleKindChange(e.target.value as IngredientKind)}
+            className="menu-item-add-modal-input"
+            aria-label="Type of item to add"
+          >
+            <option value="ingredient">Ingredient</option>
+            <option value="liquor">Liquor</option>
+            <option value="maintenance">Maintenance cost</option>
+          </select>
+        </label>
         <label className="menu-item-add-modal-field">
           <span className="menu-item-add-modal-label">Name</span>
           <input
@@ -281,6 +303,9 @@ function NewIngredientModal({
 
 type IngredientSortKey = 'name' | 'kind' | 'unit_type' | 'cost_per_unit' | 'bottle_oz';
 
+type IngredientKindFilter = 'all' | 'ingredient' | 'liquor' | 'maintenance';
+type IngredientViewMode = 'table' | 'cards';
+
 function ManageIngredientsTable({
   ingredients,
   ingredientFilter,
@@ -300,12 +325,18 @@ function ManageIngredientsTable({
   editingNum: Record<string, string>;
   setEditingNum: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }) {
-  const [newIngredientModal, setNewIngredientModal] = useState<IngredientKind | null>(null);
+  const [newIngredientModalOpen, setNewIngredientModalOpen] = useState(false);
+  const [snapshotModalOpen, setSnapshotModalOpen] = useState(false);
   const [sortKey, setSortKey] = useState<IngredientSortKey>('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [kindFilter, setKindFilter] = useState<IngredientKindFilter>('all');
+  const [viewMode, setViewMode] = useState<IngredientViewMode>('table');
 
   const sortedIngredients = useMemo(() => {
-    const arr = [...ingredients];
+    let arr = [...ingredients];
+    if (kindFilter !== 'all') {
+      arr = arr.filter((i) => (i.kind ?? 'ingredient') === kindFilter);
+    }
     arr.sort((a, b) => {
       let cmp = 0;
       switch (sortKey) {
@@ -330,7 +361,7 @@ function ManageIngredientsTable({
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return arr;
-  }, [ingredients, sortKey, sortDir]);
+  }, [ingredients, sortKey, sortDir, kindFilter]);
 
   const handleSort = (key: IngredientSortKey) => {
     setSortKey(key);
@@ -359,35 +390,125 @@ function ManageIngredientsTable({
         Manage your pantry: add ingredients and maintenance costs, set unit types and costs.
         These are reused across menu items when building recipes.
       </p>
-      <div className="ingredients-toolbar">
+      <div className="menu-items-toolbar-row menu-items-toolbar-row--primary">
         <input
           type="search"
           placeholder="Search ingredients…"
           value={ingredientFilter}
           onChange={(e) => setIngredientFilter(e.target.value)}
-          className="ingredients-search"
+          className="menu-items-search ingredients-search"
           aria-label="Filter ingredients by name"
         />
-        <button type="button" className="btn btn-primary" onClick={() => setNewIngredientModal('ingredient')}>
-          New ingredient
-        </button>
-        <button type="button" className="btn btn-secondary" onClick={() => setNewIngredientModal('liquor')}>
-          New liquor
-        </button>
-        <button type="button" className="btn btn-secondary" onClick={() => setNewIngredientModal('maintenance')}>
-          New maintenance cost
+        <button type="button" className="btn btn-primary" onClick={() => setNewIngredientModalOpen(true)}>
+          Add new
         </button>
       </div>
-      {newIngredientModal && (
-        <NewIngredientModal
-          kind={newIngredientModal}
-          onSave={(name, unit, cost, bottleOz) => {
-            createIngredient(name, unit, cost, newIngredientModal, bottleOz);
-            setNewIngredientModal(null);
-          }}
-          onClose={() => setNewIngredientModal(null)}
+      <div className="ingredients-filters-bar menu-items-toolbar-row menu-items-toolbar-row--secondary">
+        {/* Desktop: filter buttons */}
+        <div className="ingredients-filter-desktop menu-items-toolbar-group" role="group" aria-label="Filter by kind">
+          <span className="menu-items-toolbar-group-label">Filter</span>
+          <div className="menu-items-drink-filter-toggle">
+            <button
+              type="button"
+              className={`btn btn-secondary btn-sm ${kindFilter === 'all' ? 'btn--active' : ''}`}
+              onClick={() => setKindFilter('all')}
+              aria-pressed={kindFilter === 'all'}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              className={`btn btn-secondary btn-sm ${kindFilter === 'ingredient' ? 'btn--active' : ''}`}
+              onClick={() => setKindFilter('ingredient')}
+              aria-pressed={kindFilter === 'ingredient'}
+            >
+              Ingredients
+            </button>
+            <button
+              type="button"
+              className={`btn btn-secondary btn-sm ${kindFilter === 'liquor' ? 'btn--active' : ''}`}
+              onClick={() => setKindFilter('liquor')}
+              aria-pressed={kindFilter === 'liquor'}
+            >
+              Liquor
+            </button>
+            <button
+              type="button"
+              className={`btn btn-secondary btn-sm ${kindFilter === 'maintenance' ? 'btn--active' : ''}`}
+              onClick={() => setKindFilter('maintenance')}
+              aria-pressed={kindFilter === 'maintenance'}
+            >
+              Maintenance
+            </button>
+          </div>
+        </div>
+        {/* Mobile: filter select - compact dropdown */}
+        <div className="ingredients-filter-mobile menu-items-toolbar-group" role="group" aria-label="Filter by kind">
+          <label htmlFor="ingredient-kind-filter" className="menu-items-toolbar-group-label">Filter</label>
+          <select
+            id="ingredient-kind-filter"
+            value={kindFilter}
+            onChange={(e) => setKindFilter(e.target.value as IngredientKindFilter)}
+            className="ingredients-filter-select"
+            aria-label="Filter by type"
+          >
+            <option value="all">All</option>
+            <option value="ingredient">Ingredients</option>
+            <option value="liquor">Liquor</option>
+            <option value="maintenance">Maintenance</option>
+          </select>
+        </div>
+        <div className="menu-items-toolbar-divider" aria-hidden />
+        <div className="menu-items-toolbar-group" role="group" aria-label="View mode">
+          <span className="menu-items-toolbar-group-label">View</span>
+          <div className="menu-items-view-toggle">
+            <button
+              type="button"
+              className={`btn btn-secondary btn-sm ${viewMode === 'cards' ? 'btn--active' : ''}`}
+              onClick={() => setViewMode('cards')}
+              aria-pressed={viewMode === 'cards'}
+            >
+              Cards
+            </button>
+            <button
+              type="button"
+              className={`btn btn-secondary btn-sm ${viewMode === 'table' ? 'btn--active' : ''}`}
+              onClick={() => setViewMode('table')}
+              aria-pressed={viewMode === 'table'}
+            >
+              Table
+            </button>
+          </div>
+        </div>
+        {ingredients.length > 0 && (
+          <>
+            <div className="menu-items-toolbar-divider" aria-hidden />
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm ingredients-snapshot-btn"
+              onClick={() => setSnapshotModalOpen(true)}
+            >
+              Create cost snapshot
+            </button>
+          </>
+        )}
+      </div>
+      {snapshotModalOpen && (
+        <CreateSnapshotModal
+          ingredients={ingredients}
+          onClose={() => setSnapshotModalOpen(false)}
         />
       )}
+      {newIngredientModalOpen && (
+        <NewIngredientModal
+          onSave={(name, unit, cost, kind, bottleOz) => {
+            createIngredient(name, unit, cost, kind, bottleOz);
+            setNewIngredientModalOpen(false);
+          }}
+          onClose={() => setNewIngredientModalOpen(false)}
+        />
+      )}
+      {viewMode === 'table' ? (
       <div className="ingredients-table-wrap">
         <table className="ingredients-table">
           <thead>
@@ -525,14 +646,153 @@ function ManageIngredientsTable({
             ))}
           </tbody>
         </table>
-        {ingredients.length === 0 && (
+        {sortedIngredients.length === 0 && (
           <p className="ingredients-manage-empty">
-            {ingredientFilter.trim()
-              ? 'No ingredients match your search.'
+            {ingredientFilter.trim() || kindFilter !== 'all'
+              ? 'No ingredients match your filters.'
               : 'No ingredients yet. Add one above or add them when building recipes.'}
           </p>
         )}
       </div>
+      ) : (
+      <div className="ingredients-cards-list">
+        {sortedIngredients.map((ing) => (
+          <section
+            key={ing.id}
+            className={`ingredient-card ${
+              ing.kind === 'maintenance'
+                ? 'ingredient-card--maintenance'
+                : ing.kind === 'liquor'
+                  ? 'ingredient-card--liquor'
+                  : ''
+            }`}
+          >
+            <div className="ingredient-card-header">
+              <input
+                placeholder="Name"
+                value={ing.name}
+                onChange={(e) => updateIngredient(ing.id, { name: e.target.value })}
+                className="ingredient-card-name"
+                aria-label={`Name for ${ing.name || 'ingredient'}`}
+              />
+              <select
+                value={ing.kind ?? 'ingredient'}
+                onChange={(e) => {
+                  const k = e.target.value as IngredientKind;
+                  updateIngredient(ing.id, {
+                    kind: k,
+                    bottle_oz: k === 'liquor' ? (ing.bottle_oz ?? 25.4) : undefined,
+                  });
+                }}
+                className="ingredient-card-kind"
+                aria-label={`Kind for ${ing.name || 'ingredient'}`}
+              >
+                <option value="ingredient">Ingredient</option>
+                <option value="liquor">Liquor</option>
+                <option value="maintenance">Maintenance</option>
+              </select>
+            </div>
+            <div className="ingredient-card-fields">
+              <label className="ingredient-card-field">
+                <span>Unit</span>
+                <select
+                  value={ing.unit_type}
+                  onChange={(e) => updateIngredient(ing.id, { unit_type: e.target.value as Ingredient['unit_type'] })}
+                  aria-label={`Unit for ${ing.name || 'ingredient'}`}
+                >
+                  {UNIT_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="ingredient-card-field">
+                <span>Cost</span>
+                <span className="input-with-prefix">
+                  <span className="input-prefix">$</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    value={editingNum[`cost-${ing.id}`] ?? (Number.isFinite(ing.cost_per_unit) ? String(ing.cost_per_unit) : '')}
+                    onFocus={() =>
+                      setEditingNum((e) => ({
+                        ...e,
+                        [`cost-${ing.id}`]: Number.isFinite(ing.cost_per_unit) ? String(ing.cost_per_unit) : '',
+                      }))
+                    }
+                    onChange={(e) => setEditingNum((prev) => ({ ...prev, [`cost-${ing.id}`]: e.target.value }))}
+                    onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                    onBlur={() => {
+                      const raw = editingNum[`cost-${ing.id}`];
+                      if (raw == null) return;
+                      const n = Math.max(0, parseFloat(raw) || 0);
+                      updateIngredient(ing.id, { cost_per_unit: n });
+                      setEditingNum((prev) => {
+                        const next = { ...prev };
+                        delete next[`cost-${ing.id}`];
+                        return next;
+                      });
+                    }}
+                    aria-label={`Cost per unit for ${ing.name || 'ingredient'}`}
+                  />
+                </span>
+              </label>
+              {(ing.kind ?? 'ingredient') === 'liquor' && (
+                <label className="ingredient-card-field">
+                  <span>Bottle (oz)</span>
+                  <input
+                    type="number"
+                    min={1}
+                    step={0.1}
+                    value={editingNum[`bottle-${ing.id}`] ?? (Number.isFinite(ing.bottle_oz) ? String(ing.bottle_oz) : '')}
+                    onFocus={() =>
+                      setEditingNum((e) => ({
+                        ...e,
+                        [`bottle-${ing.id}`]: Number.isFinite(ing.bottle_oz) ? String(ing.bottle_oz) : '25.4',
+                      }))
+                    }
+                    onChange={(e) =>
+                      setEditingNum((prev) => ({ ...prev, [`bottle-${ing.id}`]: e.target.value }))
+                    }
+                    onBlur={() => {
+                      const raw = editingNum[`bottle-${ing.id}`];
+                      if (raw == null) return;
+                      const n = parseFloat(raw);
+                      updateIngredient(ing.id, {
+                        bottle_oz: Number.isFinite(n) && n > 0 ? n : 25.4,
+                      });
+                      setEditingNum((prev) => {
+                        const next = { ...prev };
+                        delete next[`bottle-${ing.id}`];
+                        return next;
+                      });
+                    }}
+                    placeholder="25.4"
+                    aria-label={`Bottle oz for ${ing.name || 'ingredient'}`}
+                  />
+                </label>
+              )}
+            </div>
+            <div className="ingredient-card-actions">
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => removeIngredient(ing.id)}
+              >
+                Remove
+              </button>
+            </div>
+          </section>
+        ))}
+        {sortedIngredients.length === 0 && (
+          <p className="ingredients-manage-empty">
+            {ingredientFilter.trim() || kindFilter !== 'all'
+              ? 'No ingredients match your filters.'
+              : 'No ingredients yet. Add one above or add them when building recipes.'}
+          </p>
+        )}
+      </div>
+      )}
     </div>
   );
 }
@@ -611,11 +871,28 @@ function NewIngredientForm({
   );
 }
 
-type IngredientsTab = 'menu' | 'ingredients';
+type IngredientsTab = 'menu' | 'ingredients' | 'categories';
 type MenuViewMode = 'cards' | 'table';
-type MenuSortKey = 'name' | 'price' | 'cost' | 'margin' | 'target';
+type MenuSortKey = 'name' | 'price' | 'units_sold' | 'cost' | 'margin';
+
+/** Aggregate sales by item name (matches marginEngine logic). */
+function aggregateSales(
+  records: { item_name: string; units_sold: number; revenue: number }[]
+): Map<string, { units_sold: number; revenue: number }> {
+  const map = new Map<string, { units_sold: number; revenue: number }>();
+  records.forEach((r) => {
+    const key = r.item_name.trim();
+    const existing = map.get(key) ?? { units_sold: 0, revenue: 0 };
+    map.set(key, {
+      units_sold: existing.units_sold + r.units_sold,
+      revenue: existing.revenue + r.revenue,
+    });
+  });
+  return map;
+}
 
 export default function DashboardIngredientsPage() {
+  const searchParams = useSearchParams();
   const {
     marginGoal,
     setMarginGoal,
@@ -634,6 +911,7 @@ export default function DashboardIngredientsPage() {
     addMenuItem,
     removeMenuItem,
     renameMenuItem,
+    duplicateMenuItem,
     getOrCreateRecipe,
     addRecipeLine,
     removeRecipeLine,
@@ -646,14 +924,34 @@ export default function DashboardIngredientsPage() {
     filteredIngredients,
     menuItemIsDrink,
     setMenuItemIsDrink,
+    salesRecords,
+    setSalesRecords,
+    menuCategories,
+    setMenuCategories,
+    menuItemCategories,
+    setMenuItemCategories,
   } = useDashboardData();
 
-  const [activeTab, setActiveTab] = useState<IngredientsTab>('menu');
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<IngredientsTab>(() => {
+    if (tabParam === 'ingredients') return 'ingredients';
+    if (tabParam === 'categories') return 'categories';
+    return 'menu';
+  });
+  const [newCategoryName, setNewCategoryName] = useState('');
+  useEffect(() => {
+    if (tabParam === 'ingredients') setActiveTab('ingredients');
+    else if (tabParam === 'categories') setActiveTab('categories');
+    else if (tabParam === 'menu') setActiveTab('menu');
+  }, [tabParam]);
   const [menuViewMode, setMenuViewMode] = useState<MenuViewMode>('table');
   const [menuFilter, setMenuFilter] = useState('');
   const [menuSortKey, setMenuSortKey] = useState<MenuSortKey>('name');
   const [menuSortDir, setMenuSortDir] = useState<'asc' | 'desc'>('asc');
+  const [drinkFilter, setDrinkFilter] = useState<'all' | 'drinks' | 'food'>('all');
   const [expandedTableRow, setExpandedTableRow] = useState<string | null>(null);
+  const [editingTableRowName, setEditingTableRowName] = useState<string | null>(null);
+  const [editingTableRowDraft, setEditingTableRowDraft] = useState('');
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editingLine, setEditingLine] = useState<{
     menuItemName: string;
@@ -705,11 +1003,45 @@ export default function DashboardIngredientsPage() {
     }
   };
 
+  const salesByItem = useMemo(
+    () => aggregateSales(salesRecords),
+    [salesRecords]
+  );
+
+  const updateUnitsForItem = (itemName: string, units_sold: number) => {
+    const price = menuPrices[itemName] ?? 0;
+    const revenue = Math.round(units_sold * price * 100) / 100;
+    setSalesRecords((prev) => {
+      const rest = prev.filter((r) => r.item_name.trim() !== itemName);
+      if (units_sold > 0) {
+        return [...rest, { item_name: itemName.trim(), units_sold, revenue }];
+      }
+      return rest;
+    });
+  };
+  const updatePriceForItem = (itemName: string, price: number) => {
+    setMenuPrices((prev) => ({ ...prev, [itemName]: price }));
+    const units = salesByItem.get(itemName)?.units_sold ?? 0;
+    const revenue = Math.round(units * price * 100) / 100;
+    setSalesRecords((prev) => {
+      const rest = prev.filter((r) => r.item_name.trim() !== itemName);
+      if (units > 0) {
+        return [...rest, { item_name: itemName.trim(), units_sold: units, revenue }];
+      }
+      return rest;
+    });
+  };
+
   const filteredAndSortedMenuItems = useMemo(() => {
     const q = menuFilter.trim().toLowerCase();
     let items = q
       ? uniqueItemNames.filter((n) => n.toLowerCase().includes(q))
       : [...uniqueItemNames];
+    if (drinkFilter === 'drinks') {
+      items = items.filter((n) => menuItemIsDrink[n]);
+    } else if (drinkFilter === 'food') {
+      items = items.filter((n) => !menuItemIsDrink[n]);
+    }
     items = [...items].sort((a, b) => {
       const recipeA = getOrCreateRecipe(a);
       const recipeB = getOrCreateRecipe(b);
@@ -717,8 +1049,8 @@ export default function DashboardIngredientsPage() {
       const costB = itemCosts.get(b) ?? 0;
       const priceA = menuPrices[a];
       const priceB = menuPrices[b];
-      const targetA = menuMarginGoal[a] != null ? menuMarginGoal[a] * 100 : marginGoal * 100;
-      const targetB = menuMarginGoal[b] != null ? menuMarginGoal[b] * 100 : marginGoal * 100;
+      const unitsA = salesByItem.get(a)?.units_sold ?? 0;
+      const unitsB = salesByItem.get(b)?.units_sold ?? 0;
       const marginA =
         priceA != null && priceA > 0 && costA >= 0 ? ((priceA - costA) / priceA) * 100 : -1;
       const marginB =
@@ -732,14 +1064,14 @@ export default function DashboardIngredientsPage() {
         case 'price':
           cmp = (priceA ?? 0) - (priceB ?? 0);
           break;
+        case 'units_sold':
+          cmp = unitsA - unitsB;
+          break;
         case 'cost':
           cmp = costA - costB;
           break;
         case 'margin':
           cmp = marginA - marginB;
-          break;
-        case 'target':
-          cmp = targetA - targetB;
           break;
         default:
           cmp = a.localeCompare(b);
@@ -750,84 +1082,141 @@ export default function DashboardIngredientsPage() {
   }, [
     uniqueItemNames,
     menuFilter,
+    drinkFilter,
+    menuItemIsDrink,
     menuSortKey,
     menuSortDir,
     getOrCreateRecipe,
     itemCosts,
     menuPrices,
-    menuMarginGoal,
-    marginGoal,
+    salesByItem,
   ]);
 
   return (
     <div className="menu-items-page">
       <header className="menu-items-page-header">
-        <div className="menu-items-page-header-inner">
-          <h1 className="menu-items-page-title">Menu &amp; recipes</h1>
-          <div className="menu-items-page-tabs">
-            <button
-              type="button"
-              className={`menu-items-page-tab ${activeTab === 'menu' ? 'menu-items-page-tab--active' : ''}`}
-              onClick={() => setActiveTab('menu')}
-            >
-              Menu items
-            </button>
-            <button
-              type="button"
-              className={`menu-items-page-tab ${activeTab === 'ingredients' ? 'menu-items-page-tab--active' : ''}`}
-              onClick={() => setActiveTab('ingredients')}
-            >
-              Manage ingredients
-            </button>
-          </div>
-          {activeTab === 'menu' && (
-          <div className="menu-items-page-margin-pill">
-            <label htmlFor="default-margin" className="menu-items-page-margin-label">
-              Target margin
-            </label>
-            <span className="menu-items-page-margin-input-wrap">
-              <input
-                id="default-margin"
-                type="text"
-                inputMode="numeric"
-                placeholder="75"
-                value={
-                  editingNum['default-margin'] ?? String(Math.round(marginGoal * 100))
-                }
-                onFocus={() =>
-                  setEditingNum((e) => ({
-                    ...e,
-                    'default-margin': String(Math.round(marginGoal * 100)),
-                  }))
-                }
-                onChange={(e) =>
-                  setEditingNum((prev) => ({ ...prev, 'default-margin': e.target.value }))
-                }
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-                }}
-                onBlur={() => {
-                  const raw = editingNum['default-margin'];
-                  if (raw == null) return;
-                  const n = Math.max(0, Math.min(100, parseFloat(raw) || 0));
-                  setMarginGoal(n / 100);
-                  setEditingNum((prev) => {
-                    const next = { ...prev };
-                    delete next['default-margin'];
-                    return next;
-                  });
-                }}
-                className="menu-items-page-margin-input"
-                aria-label="Default target margin percent"
-              />
-              <span className="menu-items-page-margin-suffix">%</span>
-            </span>
-          </div>
-          )}
-        </div>
+        <h1 className="menu-items-page-title">Menu &amp; recipes</h1>
       </header>
 
-      {activeTab === 'ingredients' ? (
+      <div className="menu-items-content">
+
+      {activeTab === 'categories' ? (
+        <div className="ingredients-manage-section categories-section">
+          <p className="ingredients-manage-intro">
+            Group menu items into categories (e.g. Drinks, Food, Entrees, Apps) to organize reports
+            and compare margins by category.
+          </p>
+          <div className="menu-items-toolbar-row menu-items-toolbar-row--primary">
+            <input
+              type="text"
+              placeholder="Add category (e.g. Drinks, Entrees)"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  const name = newCategoryName.trim();
+                  if (name && !menuCategories.includes(name)) {
+                    setMenuCategories((prev) => [...prev, name].sort());
+                    setNewCategoryName('');
+                  }
+                }
+              }}
+              className="menu-items-search"
+              aria-label="New category name"
+            />
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => {
+                const name = newCategoryName.trim();
+                if (name && !menuCategories.includes(name)) {
+                  setMenuCategories((prev) => [...prev, name].sort());
+                  setNewCategoryName('');
+                }
+              }}
+            >
+              Add
+            </button>
+          </div>
+          {menuCategories.length > 0 && (
+            <ul className="profile-categories-list">
+              {menuCategories.map((cat) => (
+                <li key={cat} className="profile-category-item">
+                  <span className="profile-category-name">{cat}</span>
+                  <button
+                    type="button"
+                    className="profile-category-remove"
+                    onClick={() => {
+                      setMenuCategories((prev) => prev.filter((c) => c !== cat));
+                      setMenuItemCategories((prev) => {
+                        const next = { ...prev };
+                        for (const [item, c] of Object.entries(next)) {
+                          if (c === cat) delete next[item];
+                        }
+                        return next;
+                      });
+                    }}
+                    aria-label={`Remove category ${cat}`}
+                  >
+                    ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {uniqueItemNames.length > 0 && menuCategories.length > 0 && (
+            <div className="profile-item-assignments">
+              <h3 className="profile-subsection-title">Assign items to categories</h3>
+              <div className="profile-item-assignments-table-wrap">
+                <table className="profile-item-assignments-table">
+                  <thead>
+                    <tr>
+                      <th>Menu item</th>
+                      <th>Category</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {uniqueItemNames.map((item) => (
+                      <tr key={item}>
+                        <td>{item}</td>
+                        <td>
+                          <select
+                            value={menuItemCategories[item] ?? ''}
+                            onChange={(e) => {
+                              const cat = e.target.value;
+                              setMenuItemCategories((prev) => {
+                                const next = { ...prev };
+                                if (cat) next[item] = cat;
+                                else delete next[item];
+                                return next;
+                              });
+                            }}
+                            className="profile-category-select"
+                            aria-label={`Category for ${item}`}
+                          >
+                            <option value="">—</option>
+                            {menuCategories.map((c) => (
+                              <option key={c} value={c}>
+                                {c}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          {uniqueItemNames.length === 0 && menuCategories.length > 0 && (
+            <p className="profile-categories-hint">
+              Add menu items to assign them to categories.
+            </p>
+          )}
+        </div>
+      ) : activeTab === 'ingredients' ? (
         <>
         <ManageIngredientsTable
           ingredients={filteredIngredients}
@@ -846,8 +1235,8 @@ export default function DashboardIngredientsPage() {
         Add menu items and what goes in each. Reuse ingredients across items — e.g. ranch and buffalo sauce in both wings and salad.
       </p>
 
-      {/* Menu toolbar: filter, view toggle, sort */}
-      <div className="menu-items-toolbar">
+      {/* Top row: search + primary action */}
+      <div className="menu-items-toolbar-row menu-items-toolbar-row--primary">
         <input
           type="search"
           placeholder="Search menu items…"
@@ -856,7 +1245,52 @@ export default function DashboardIngredientsPage() {
           className="menu-items-search"
           aria-label="Filter menu items by name"
         />
-        <div className="menu-items-view-toggle">
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => setAddModalOpen(true)}
+        >
+          Add item
+        </button>
+      </div>
+
+      {/* Second row: filters, view, target, sort — collapsible on mobile */}
+      <details className="menu-items-filters-collapsible">
+        <summary className="menu-items-filters-summary">Filters & view</summary>
+      <div className="menu-items-toolbar-row menu-items-toolbar-row--secondary">
+        <div className="menu-items-toolbar-group" role="group" aria-label="Filter by type">
+          <span className="menu-items-toolbar-group-label">Filter</span>
+          <div className="menu-items-drink-filter-toggle">
+            <button
+              type="button"
+              className={`btn btn-secondary btn-sm ${drinkFilter === 'all' ? 'btn--active' : ''}`}
+              onClick={() => setDrinkFilter('all')}
+              aria-pressed={drinkFilter === 'all'}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              className={`btn btn-secondary btn-sm ${drinkFilter === 'drinks' ? 'btn--active' : ''}`}
+              onClick={() => setDrinkFilter('drinks')}
+              aria-pressed={drinkFilter === 'drinks'}
+            >
+              Drinks
+            </button>
+            <button
+              type="button"
+              className={`btn btn-secondary btn-sm ${drinkFilter === 'food' ? 'btn--active' : ''}`}
+              onClick={() => setDrinkFilter('food')}
+              aria-pressed={drinkFilter === 'food'}
+            >
+              Food
+            </button>
+          </div>
+        </div>
+        <div className="menu-items-toolbar-divider" aria-hidden />
+        <div className="menu-items-toolbar-group" role="group" aria-label="View mode">
+          <span className="menu-items-toolbar-group-label">View</span>
+          <div className="menu-items-view-toggle">
           <button
             type="button"
             className={`btn btn-secondary btn-sm ${menuViewMode === 'cards' ? 'btn--active' : ''}`}
@@ -871,10 +1305,55 @@ export default function DashboardIngredientsPage() {
           >
             Table
           </button>
+          </div>
         </div>
-        <div className="menu-items-sort">
-          <label htmlFor="menu-sort" className="menu-items-sort-label">
-            Sort by
+        <div className="menu-items-toolbar-divider" aria-hidden />
+        <div className="menu-items-toolbar-group" role="group" aria-label="Target margin">
+          <label htmlFor="default-margin" className="menu-items-toolbar-group-label">
+            Target margin
+          </label>
+          <span className="menu-items-margin-input-wrap">
+            <input
+              id="default-margin"
+              type="text"
+              inputMode="numeric"
+              placeholder="75"
+              value={
+                editingNum['default-margin'] ?? String(Math.round(marginGoal * 100))
+              }
+              onFocus={() =>
+                setEditingNum((e) => ({
+                  ...e,
+                  'default-margin': String(Math.round(marginGoal * 100)),
+                }))
+              }
+              onChange={(e) =>
+                setEditingNum((prev) => ({ ...prev, 'default-margin': e.target.value }))
+              }
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+              }}
+              onBlur={() => {
+                const raw = editingNum['default-margin'];
+                if (raw == null) return;
+                const n = Math.max(0, Math.min(100, parseFloat(raw) || 0));
+                setMarginGoal(n / 100);
+                setEditingNum((prev) => {
+                  const next = { ...prev };
+                  delete next['default-margin'];
+                  return next;
+                });
+              }}
+              className="menu-items-margin-input"
+              aria-label="Default target margin percent"
+            />
+            <span className="menu-items-margin-suffix">%</span>
+          </span>
+        </div>
+        <div className="menu-items-toolbar-divider" aria-hidden />
+        <div className="menu-items-toolbar-group" role="group" aria-label="Sort">
+          <label htmlFor="menu-sort" className="menu-items-toolbar-group-label">
+            Sort
           </label>
           <select
             id="menu-sort"
@@ -885,9 +1364,9 @@ export default function DashboardIngredientsPage() {
           >
             <option value="name">Name</option>
             <option value="price">Price</option>
+            <option value="units_sold">Units sold</option>
             <option value="cost">Cost</option>
             <option value="margin">Margin %</option>
-            <option value="target">Target %</option>
           </select>
           <button
             type="button"
@@ -900,17 +1379,7 @@ export default function DashboardIngredientsPage() {
           </button>
         </div>
       </div>
-
-      {/* Add new menu item */}
-      <div className="menu-item-add-row">
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => setAddModalOpen(true)}
-        >
-          Add item
-        </button>
-      </div>
+      </details>
 
       {/* Add item modal */}
       {addModalOpen && (
@@ -932,10 +1401,10 @@ export default function DashboardIngredientsPage() {
               <tr>
                 <th>Name</th>
                 <th>Price</th>
+                <th>Units sold</th>
+                <th>Revenue</th>
                 <th>Cost</th>
                 <th>Margin</th>
-                <th>Target</th>
-                <th>Drink</th>
                 <th aria-hidden>Actions</th>
               </tr>
             </thead>
@@ -944,6 +1413,10 @@ export default function DashboardIngredientsPage() {
                 const recipe = getOrCreateRecipe(name);
                 const cost = itemCosts.get(name) ?? 0;
                 const price = menuPrices[name];
+                const sales = salesByItem.get(name) ?? { units_sold: 0, revenue: 0 };
+                const revenue = sales.units_sold > 0 && (price ?? 0) > 0
+                  ? sales.units_sold * (price ?? 0)
+                  : sales.revenue;
                 const targetMarginPct =
                   menuMarginGoal[name] != null ? menuMarginGoal[name] * 100 : marginGoal * 100;
                 const currentMarginPct =
@@ -958,19 +1431,51 @@ export default function DashboardIngredientsPage() {
                   <React.Fragment key={name}>
                     <tr
                       className={`menu-items-table-row ${isExpanded ? 'menu-items-table-row--expanded' : ''}`}
+                      onClick={() => setExpandedTableRow(isExpanded ? null : name)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setExpandedTableRow(isExpanded ? null : name);
+                        }
+                      }}
+                      aria-expanded={isExpanded}
+                      aria-label={`${name} — click to ${isExpanded ? 'collapse' : 'expand'} recipe`}
                     >
-                      <td>
-                        <button
-                          type="button"
-                          className="menu-items-table-expand"
-                          onClick={() => setExpandedTableRow(isExpanded ? null : name)}
-                          aria-expanded={isExpanded}
-                          aria-label={isExpanded ? 'Collapse recipe' : 'Expand recipe'}
-                        >
-                          {isExpanded ? '▼' : '▶'} {name}
-                        </button>
+                      <td
+                        className="menu-items-table-name-cell"
+                        onClick={editingTableRowName === name ? (e) => e.stopPropagation() : undefined}
+                      >
+                        {editingTableRowName === name ? (
+                          <input
+                            type="text"
+                            value={editingTableRowDraft}
+                            onChange={(e) => setEditingTableRowDraft(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                              if (e.key === 'Escape') {
+                                setEditingTableRowDraft(name);
+                                setEditingTableRowName(null);
+                                (e.target as HTMLInputElement).blur();
+                              }
+                            }}
+                            onBlur={() => {
+                              const v = editingTableRowDraft.trim();
+                              if (v && v !== name) renameMenuItem(name, v);
+                              setEditingTableRowName(null);
+                              setEditingTableRowDraft('');
+                            }}
+                            className="menu-items-table-input menu-items-table-input--name"
+                            autoFocus
+                            aria-label="Edit menu item name"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        ) : (
+                          <span className="menu-items-table-name">{name}</span>
+                        )}
                       </td>
-                      <td>
+                      <td onClick={(e) => e.stopPropagation()}>
                         <span className="input-with-prefix">
                           <span className="input-prefix">$</span>
                           <input
@@ -1004,11 +1509,14 @@ export default function DashboardIngredientsPage() {
                                   delete next[name];
                                   return next;
                                 });
+                                setSalesRecords((prev) => {
+                                  const rest = prev.filter((r) => r.item_name.trim() !== name);
+                                  const units = salesByItem.get(name)?.units_sold ?? 0;
+                                  if (units > 0) return [...rest, { item_name: name.trim(), units_sold: units, revenue: 0 }];
+                                  return rest;
+                                });
                               } else {
-                                setMenuPrices((p) => ({
-                                  ...p,
-                                  [name]: Math.max(0, parseFloat(raw) || 0),
-                                }));
+                                updatePriceForItem(name, Math.max(0, parseFloat(raw) || 0));
                               }
                               setEditingNum((prev) => {
                                 const next = { ...prev };
@@ -1020,6 +1528,41 @@ export default function DashboardIngredientsPage() {
                             aria-label={`Price for ${name}`}
                           />
                         </span>
+                      </td>
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={editingNum[`units-${name}`] ?? String(sales.units_sold)}
+                          onFocus={() =>
+                            setEditingNum((prev) => ({
+                              ...prev,
+                              [`units-${name}`]: String(sales.units_sold),
+                            }))
+                          }
+                          onChange={(e) =>
+                            setEditingNum((prev) => ({ ...prev, [`units-${name}`]: e.target.value }))
+                          }
+                          onBlur={() => {
+                            const raw = editingNum[`units-${name}`];
+                            if (raw == null) return;
+                            const n = Math.max(0, Math.floor(parseFloat(raw) || 0));
+                            updateUnitsForItem(name, n);
+                            setEditingNum((prev) => {
+                              const next = { ...prev };
+                              delete next[`units-${name}`];
+                              return next;
+                            });
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                          }}
+                          className="menu-items-table-input menu-items-table-input--units"
+                          aria-label={`Units sold for ${name}`}
+                        />
+                      </td>
+                      <td className="menu-items-table-revenue">
+                        {revenue > 0 ? `$${revenue.toFixed(2)}` : '—'}
                       </td>
                       <td>${cost.toFixed(2)}</td>
                       <td>
@@ -1035,17 +1578,42 @@ export default function DashboardIngredientsPage() {
                           '—'
                         )}
                       </td>
-                      <td>{targetMarginPct.toFixed(0)}%</td>
-                      <td>{menuItemIsDrink[name] ? 'Yes' : '—'}</td>
-                      <td>
-                        <button
-                          type="button"
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => removeMenuItem(name)}
-                          aria-label={`Remove ${name}`}
-                        >
-                          Remove
-                        </button>
+                      <td className="menu-items-table-actions" onClick={(e) => e.stopPropagation()}>
+                        <div className="menu-items-table-action-buttons">
+                          <button
+                            type="button"
+                            className="menu-items-table-action-btn"
+                            onClick={() => {
+                              const newName = duplicateMenuItem(name);
+                              if (newName) setExpandedTableRow(newName);
+                            }}
+                            aria-label={`Duplicate ${name}`}
+                            title="Duplicate"
+                          >
+                            <Copy size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            className="menu-items-table-action-btn"
+                            onClick={() => {
+                              setEditingTableRowName(name);
+                              setEditingTableRowDraft(name);
+                            }}
+                            aria-label={`Edit ${name}`}
+                            title="Edit"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            className="menu-items-table-action-btn menu-items-table-action-btn--danger"
+                            onClick={() => removeMenuItem(name)}
+                            aria-label={`Delete ${name}`}
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                     {isExpanded && (
@@ -1055,21 +1623,268 @@ export default function DashboardIngredientsPage() {
                             <div className="menu-items-table-detail-header">
                               <strong>{name}</strong> — Recipe ({recipe.lines.length} ingredients)
                             </div>
-                            <ul className="menu-items-table-detail-lines">
+                            <div className="menu-item-ingredient-search-wrapper">
+                              {pendingQuantity?.menuItemName === name && (
+                                <div className="menu-item-quantity-prompt">
+                                  <span className="menu-item-quantity-prompt-label">
+                                    {pendingQuantity.ingredientName}:
+                                  </span>
+                                  <div className="menu-item-quantity-prompt-row">
+                                    <input
+                                      type="text"
+                                      inputMode="decimal"
+                                      value={pendingQtyValue}
+                                      onChange={(e) => setPendingQtyValue(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && parseFloat(pendingQtyValue) > 0)
+                                          handleAddWithQuantity();
+                                      }}
+                                      className="menu-item-quantity-prompt-input"
+                                      autoFocus
+                                      aria-label="Quantity per serving"
+                                    />
+                                    <select
+                                      value={pendingQtyUnit}
+                                      onChange={(e) =>
+                                        setPendingQtyUnit(e.target.value as Ingredient['unit_type'])
+                                      }
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && parseFloat(pendingQtyValue) > 0)
+                                          handleAddWithQuantity();
+                                      }}
+                                      className="menu-item-quantity-prompt-unit-select"
+                                      aria-label="Unit"
+                                    >
+                                      {UNIT_OPTIONS.map((o) => (
+                                        <option key={o.value} value={o.value}>
+                                          {o.label}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    <button
+                                      type="button"
+                                      className="btn btn-primary btn-sm"
+                                      onClick={handleAddWithQuantity}
+                                      disabled={!(parseFloat(pendingQtyValue) > 0)}
+                                    >
+                                      Add
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="btn btn-secondary btn-sm"
+                                      onClick={() => {
+                                        setPendingQuantity(null);
+                                        setPendingQtyValue('');
+                                      }}
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                              <SearchableIngredientDropdown
+                                ingredients={ingredients.filter((i) => i.name)}
+                                onSelectExisting={(ing) => handleSelectExisting(name, ing)}
+                                onAddNew={(ingName, unit, cost) => {
+                                  const id = findOrCreateIngredient(ingName, unit, cost);
+                                  setPendingQuantity({
+                                    menuItemName: name,
+                                    ingredientId: id,
+                                    ingredientName: ingName,
+                                    ingredientUnit: unit,
+                                  });
+                                  setPendingQtyUnit(unit);
+                                  setPendingQtyValue('');
+                                }}
+                                placeholder="Search or add ingredient…"
+                              />
+                            </div>
+                            <ul className="menu-items-table-detail-lines menu-item-lines">
+                              {recipe.lines.length === 0 && (
+                                <li className="menu-item-lines-empty">
+                                  Add at least one ingredient above.
+                                </li>
+                              )}
                               {recipe.lines.map((line) => {
                                 const ing = ingredients.find((i) => i.id === line.ingredient_id);
                                 const lineCostVal = ing ? lineCost(line, ingredients) : 0;
                                 const display = lineDisplay(line, ingredients);
+                                const isEditingQty =
+                                  editingLine?.menuItemName === name &&
+                                  editingLine?.ingredientId === line.ingredient_id &&
+                                  editingLine?.mode === 'qty';
+                                const isEditingCost =
+                                  editingLine?.menuItemName === name &&
+                                  editingLine?.ingredientId === line.ingredient_id &&
+                                  editingLine?.mode === 'cost';
+
+                                const handleStartEditQty = () => {
+                                  setEditingLine({ menuItemName: name, ingredientId: line.ingredient_id, mode: 'qty' });
+                                  setEditingLineQty(String(display.quantity));
+                                  setEditingLineUnit((line.display_unit ?? ing?.unit_type ?? 'oz') as Ingredient['unit_type']);
+                                };
+                                const handleSaveQty = () => {
+                                  if (!ing) return;
+                                  const userQty = parseFloat(editingLineQty) || 0;
+                                  if (userQty > 0) {
+                                    const qtyInIngredientUnit = convertUnit(
+                                      userQty,
+                                      editingLineUnit,
+                                      ing.unit_type
+                                    );
+                                    addRecipeLine(name, line.ingredient_id, qtyInIngredientUnit, editingLineUnit);
+                                  }
+                                  setEditingLine(null);
+                                };
+                                const handleStartEditCost = () => {
+                                  setEditingLine({ menuItemName: name, ingredientId: line.ingredient_id, mode: 'cost' });
+                                  setEditingCostValue(ing ? String(ing.cost_per_unit) : '');
+                                };
+                                const handleSaveCost = () => {
+                                  if (!ing) return;
+                                  const c = Math.max(0, parseFloat(editingCostValue) || 0);
+                                  updateIngredient(ing.id, { cost_per_unit: c });
+                                  setEditingLine(null);
+                                };
+
                                 return (
-                                  <li key={line.ingredient_id}>
-                                    {display.quantity} {display.unit} {ing?.name ?? '?'} — ${lineCostVal.toFixed(2)}
+                                  <li key={line.ingredient_id} className="menu-item-line">
+                                    {isEditingQty ? (
+                                      <div className="menu-item-line-edit-qty">
+                                        <div className="menu-item-line-edit-controls">
+                                          <input
+                                            type="text"
+                                            inputMode="decimal"
+                                            value={editingLineQty}
+                                            onChange={(e) => setEditingLineQty(e.target.value)}
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter') handleSaveQty();
+                                              if (e.key === 'Escape') setEditingLine(null);
+                                            }}
+                                            className="menu-item-line-edit-input"
+                                            autoFocus
+                                          />
+                                          <select
+                                            value={editingLineUnit}
+                                            onChange={(e) =>
+                                              setEditingLineUnit(e.target.value as Ingredient['unit_type'])
+                                            }
+                                            className="menu-item-line-edit-unit"
+                                          >
+                                            {UNIT_OPTIONS.map((o) => (
+                                              <option key={o.value} value={o.value}>
+                                                {o.label}
+                                              </option>
+                                            ))}
+                                          </select>
+                                          <span className="menu-item-line-edit-qty-name">{ing?.name ?? '?'}</span>
+                                        </div>
+                                        <div className="menu-item-line-edit-actions">
+                                          <button
+                                            type="button"
+                                            className="btn btn-primary btn-sm"
+                                            onClick={handleSaveQty}
+                                            disabled={!(parseFloat(editingLineQty) > 0)}
+                                          >
+                                            Save
+                                          </button>
+                                          <button
+                                            type="button"
+                                            className="btn btn-secondary btn-sm"
+                                            onClick={() => setEditingLine(null)}
+                                          >
+                                            Cancel
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ) : isEditingCost ? (
+                                      <div className="menu-item-line-edit-cost">
+                                        <div className="menu-item-line-edit-controls">
+                                          <span className="menu-item-line-edit-cost-label">
+                                            {ing?.name ?? '?'} per {ing?.unit_type ?? 'unit'}:
+                                          </span>
+                                          <span className="menu-item-line-edit-cost-input-wrap">
+                                            $<input
+                                              type="text"
+                                              inputMode="decimal"
+                                              value={editingCostValue}
+                                              onChange={(e) => setEditingCostValue(e.target.value)}
+                                              onKeyDown={(e) => {
+                                                if (e.key === 'Enter') handleSaveCost();
+                                                if (e.key === 'Escape') setEditingLine(null);
+                                              }}
+                                              className="menu-item-line-edit-input"
+                                              autoFocus
+                                            />
+                                          </span>
+                                        </div>
+                                        <div className="menu-item-line-edit-actions">
+                                          <button
+                                            type="button"
+                                            className="btn btn-primary btn-sm"
+                                            onClick={handleSaveCost}
+                                          >
+                                            Save
+                                          </button>
+                                          <button
+                                            type="button"
+                                            className="btn btn-secondary btn-sm"
+                                            onClick={() => setEditingLine(null)}
+                                          >
+                                            Cancel
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <>
+                                        <div className="menu-item-line-ingredient">
+                                          <button
+                                            type="button"
+                                            className="menu-item-line-qty"
+                                            onClick={handleStartEditQty}
+                                            title="Click to edit quantity"
+                                          >
+                                            {display.quantity} {display.unit} {ing?.name ?? '?'}
+                                            <span className="menu-item-line-qty-hint" aria-hidden>✎</span>
+                                          </button>
+                                          <span
+                                            className="menu-item-line-cost"
+                                            title={
+                                              ing
+                                                ? `Cost per serving: ${display.quantity} ${display.unit} × $${ing.cost_per_unit.toFixed(2)}/${ing.unit_type} = $${lineCostVal.toFixed(2)}`
+                                                : 'Cost per serving for this item (qty × unit cost)'
+                                            }
+                                          >
+                                            ${lineCostVal.toFixed(2)}
+                                          </span>
+                                        </div>
+                                        <div className="menu-item-line-meta">
+                                          <button
+                                            type="button"
+                                            className="menu-item-line-unit-cost"
+                                            onClick={handleStartEditCost}
+                                            title="Edit unit cost (affects all items using this ingredient)"
+                                          >
+                                            <span className="menu-item-line-unit-cost-value">
+                                              {`$` + (ing?.cost_per_unit.toFixed(2) ?? '0') + '/' + (ing?.unit_type ?? 'unit')}
+                                            </span>
+                                            <span className="menu-item-line-unit-cost-hint" aria-hidden>✎</span>
+                                          </button>
+                                          <button
+                                            type="button"
+                                            className="menu-item-line-remove"
+                                            onClick={() => removeRecipeLine(name, line.ingredient_id)}
+                                            aria-label={`Remove ${ing?.name ?? 'ingredient'}`}
+                                          >
+                                            ×
+                                          </button>
+                                        </div>
+                                      </>
+                                    )}
                                   </li>
                                 );
                               })}
                             </ul>
-                            <p className="menu-items-table-detail-hint">
-                              Switch to Cards view to edit recipes.
-                            </p>
                           </div>
                         </td>
                       </tr>
@@ -1094,6 +1909,10 @@ export default function DashboardIngredientsPage() {
           const recipe = getOrCreateRecipe(name);
           const cost = itemCosts.get(name) ?? 0;
           const price = menuPrices[name];
+          const sales = salesByItem.get(name) ?? { units_sold: 0, revenue: 0 };
+          const revenue = sales.units_sold > 0 && (price ?? 0) > 0
+            ? sales.units_sold * (price ?? 0)
+            : sales.revenue;
           const targetMarginPct =
             menuMarginGoal[name] != null ? menuMarginGoal[name] * 100 : marginGoal * 100;
           const currentMarginPct =
@@ -1192,11 +2011,14 @@ export default function DashboardIngredientsPage() {
                           delete next[name];
                           return next;
                         });
+                        setSalesRecords((prev) => {
+                          const rest = prev.filter((r) => r.item_name.trim() !== name);
+                          const units = salesByItem.get(name)?.units_sold ?? 0;
+                          if (units > 0) return [...rest, { item_name: name.trim(), units_sold: units, revenue: 0 }];
+                          return rest;
+                        });
                       } else {
-                        setMenuPrices((p) => ({
-                          ...p,
-                          [name]: Math.max(0, parseFloat(raw) || 0),
-                        }));
+                        updatePriceForItem(name, Math.max(0, parseFloat(raw) || 0));
                       }
                       setEditingNum((prev) => {
                         const next = { ...prev };
@@ -1217,10 +2039,42 @@ export default function DashboardIngredientsPage() {
                 </button>
               </div>
 
-              {/* Target, cost & margin */}
+              {/* Units sold, revenue, target, cost & margin */}
               <div className="menu-item-pricing">
                 <label className="menu-item-pricing-field">
-                  <span>Target</span>
+                  <span>Units sold</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={editingNum[`units-${name}`] ?? String(sales.units_sold)}
+                    onFocus={() =>
+                      setEditingNum((prev) => ({ ...prev, [`units-${name}`]: String(sales.units_sold) }))
+                    }
+                    onChange={(e) =>
+                      setEditingNum((prev) => ({ ...prev, [`units-${name}`]: e.target.value }))
+                    }
+                    onBlur={() => {
+                      const raw = editingNum[`units-${name}`];
+                      if (raw == null) return;
+                      const n = Math.max(0, Math.floor(parseFloat(raw) || 0));
+                      updateUnitsForItem(name, n);
+                      setEditingNum((prev) => {
+                        const next = { ...prev };
+                        delete next[`units-${name}`];
+                        return next;
+                      });
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                    }}
+                    aria-label={`Units sold for ${name}`}
+                  />
+                </label>
+                <span className="menu-item-pricing-revenue">
+                  Revenue: {revenue > 0 ? `$${revenue.toFixed(2)}` : '—'}
+                </span>
+                <label className="menu-item-pricing-field">
+                  <span>Target margin</span>
                     <input
                     type="text"
                     inputMode="numeric"
@@ -1592,6 +2446,7 @@ export default function DashboardIngredientsPage() {
       )}
     </>
     )}
+      </div>
     </div>
   );
 }

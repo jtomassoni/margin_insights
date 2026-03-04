@@ -13,7 +13,6 @@ function navItemsFor(slug: string) {
     { href: `/dashboard/${slug}`, label: 'Overview' },
     { href: `/dashboard/${slug}/reporting`, label: 'Reporting' },
     { href: `/dashboard/${slug}/ingredients`, label: 'Menu & Recipes' },
-    { href: `/dashboard/${slug}/sales`, label: 'Sales' },
   ] as const;
 }
 

@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { DashboardDataProvider, useDashboardData } from '@/context/DashboardDataContext';
 import { SnapshotRefreshProvider } from '@/context/SnapshotRefreshContext';
-import DashboardHeader from '@/components/DashboardHeader';
+import DashboardShell from '@/components/DashboardShell';
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -42,21 +42,22 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="landing demo-page">
-      <DashboardHeader slug={slug} />
-      {isLoading ? (
-        <div className="dashboard-loading">
-          <p>Loading…</p>
-        </div>
-      ) : (
-        <>
-          {saveError && (
-            <div className="dashboard-save-error" role="alert">
-              Save failed: {saveError}
-            </div>
-          )}
-          {children}
-        </>
-      )}
+      <DashboardShell slug={slug}>
+        {isLoading ? (
+          <div className="dashboard-loading">
+            <p>Loading…</p>
+          </div>
+        ) : (
+          <>
+            {saveError && (
+              <div className="dashboard-save-error" role="alert">
+                Save failed: {saveError}
+              </div>
+            )}
+            {children}
+          </>
+        )}
+      </DashboardShell>
     </div>
   );
 }

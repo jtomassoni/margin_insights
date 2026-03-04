@@ -3,13 +3,17 @@
 import { useMemo, useState } from 'react';
 import type { QuadrantItem } from '@/insight-engine/services/quadrantAnalysis';
 
-/** Clamp tooltip so it stays inside viewport */
+/** Clamp tooltip so it stays inside viewport with comfortable padding. Flips to left of cursor when near right edge. */
 const clampTooltip = (x: number, y: number, width: number, height: number) => {
   if (typeof window === 'undefined') return { left: x, top: y };
-  const pad = 8;
+  const pad = 20;
   let left = x + 12;
   let top = y + 8;
-  if (left + width > window.innerWidth - pad) left = window.innerWidth - width - pad;
+  // Flip to left of cursor when tooltip would hit right edge
+  if (left + width > window.innerWidth - pad) {
+    const leftOfCursor = x - 12 - width;
+    left = leftOfCursor >= pad ? leftOfCursor : window.innerWidth - width - pad;
+  }
   if (left < pad) left = pad;
   if (top + height > window.innerHeight - pad) top = window.innerHeight - height - pad;
   if (top < pad) top = pad;

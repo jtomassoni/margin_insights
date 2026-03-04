@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams, useParams } from 'next/navigation';
+import { useSearchParams, useParams, useRouter } from 'next/navigation';
 import {
   ContributionBarChart,
   LostProfitBarChart,
@@ -13,16 +13,16 @@ import { QuadrantChart, getQuadrantInsight } from '@/app/demo-dashboard/Quadrant
 import { suggestPrice } from '@/insight-engine/services/pricingEngine';
 import { buildQuickWins, getPrimaryIssue } from '@/insight-engine/utils/overviewData';
 import { useDashboardData } from '@/context/DashboardDataContext';
-import LiquorVarianceTab from '@/components/LiquorVarianceTab';
 import CompareSnapshotsTab from '@/components/CompareSnapshotsTab';
 import ManageSnapshotsTab from '@/components/ManageSnapshotsTab';
 import SnapshotInsightsTab from '@/components/SnapshotInsightsTab';
 
-const VALID_TABS = ['leaks', 'margins', 'pricing', 'quadrant', 'liquor', 'snapshots', 'manage', 'insights'] as const;
+const VALID_TABS = ['leaks', 'margins', 'pricing', 'quadrant', 'snapshots', 'manage', 'insights'] as const;
 
 export default function DashboardReportingPage() {
   const params = useParams();
   const slug = params.slug as string;
+  const router = useRouter();
   const searchParams = useSearchParams();
   const {
     hasAnyMenuItems,
@@ -41,10 +41,14 @@ export default function DashboardReportingPage() {
 
   useEffect(() => {
     const tab = searchParams.get('tab');
+    if (tab === 'liquor') {
+      router.replace(`/dashboard/${slug}/reporting?tab=leaks`);
+      return;
+    }
     if (tab && VALID_TABS.includes(tab as (typeof VALID_TABS)[number])) {
       setActiveTab(tab as (typeof VALID_TABS)[number]);
     }
-  }, [searchParams, setActiveTab]);
+  }, [searchParams, setActiveTab, router, slug]);
 
   if (!hasAnyMenuItems) {
     return (
@@ -78,70 +82,7 @@ export default function DashboardReportingPage() {
   return (
     <div className="demo-layout">
       <main className="demo-main">
-        <div className="demo-app-preview">
-          <section className="dashboard-section">
-            <div className="dashboard-section-header-row">
-              <h2>Margin &amp; profit</h2>
-            </div>
-            <div className="tabs">
-              <button
-                type="button"
-                className={activeTab === 'leaks' ? 'active' : ''}
-                onClick={() => setActiveTab('leaks')}
-              >
-                Profit leak report
-              </button>
-              <button
-                type="button"
-                className={activeTab === 'margins' ? 'active' : ''}
-                onClick={() => setActiveTab('margins')}
-              >
-                Margins
-              </button>
-              <button
-                type="button"
-                className={activeTab === 'pricing' ? 'active' : ''}
-                onClick={() => setActiveTab('pricing')}
-              >
-                Price suggestions
-              </button>
-              <button
-                type="button"
-                className={activeTab === 'quadrant' ? 'active' : ''}
-                onClick={() => setActiveTab('quadrant')}
-              >
-                Quadrant
-              </button>
-              <button
-                type="button"
-                className={activeTab === 'liquor' ? 'active' : ''}
-                onClick={() => setActiveTab('liquor')}
-              >
-                Liquor variance
-              </button>
-              <button
-                type="button"
-                className={activeTab === 'snapshots' ? 'active' : ''}
-                onClick={() => setActiveTab('snapshots')}
-              >
-                Cost drift
-              </button>
-              <button
-                type="button"
-                className={activeTab === 'manage' ? 'active' : ''}
-                onClick={() => setActiveTab('manage')}
-              >
-                Manage snapshots
-              </button>
-              <button
-                type="button"
-                className={activeTab === 'insights' ? 'active' : ''}
-                onClick={() => setActiveTab('insights')}
-              >
-                Insights
-              </button>
-            </div>
-
+        <section className="dashboard-section">
             {activeTab === 'leaks' && (
               <div className="profit-leak-report">
                 {leakReport.items.length > 0 ? (
@@ -208,7 +149,7 @@ export default function DashboardReportingPage() {
                       <p className="profit-leak-table-hint">
                         Raise prices or shrink portions slightly to bridge these margin gaps.
                       </p>
-                      <div className="table-wrap">
+                      <div className="table-wrap profit-leak-table-wrap">
                         <table>
                           <thead>
                             <tr>
@@ -302,14 +243,14 @@ export default function DashboardReportingPage() {
                     .join(', ');
                   return (
                     <>
-                      <div className="actionable-strip">
-                        <strong>At a glance:</strong> Your best contributors (green) are{' '}
-                        {topNames || '—'}.{' '}
-                        {watchNames
-                          ? `Watch: ${watchNames} — raise prices, shrink portions slightly, or reduce cost to hit target margin.`
-                          : 'Most items are at or above target margin.'}
-                      </div>
                       <div className="dashboard-charts-grid">
+                        <div className="margin-summary-card">
+                          <strong>At a glance:</strong> Your best contributors (green) are{' '}
+                          {topNames || '—'}.{' '}
+                          {watchNames
+                            ? `Watch: ${watchNames} — raise prices, shrink portions slightly, or reduce cost to hit target margin.`
+                            : 'Most items are at or above target margin.'}
+                        </div>
                         <ContributionBarChart
                           rows={marginRowsWithPrices}
                           targetMarginPct={targetPct}
@@ -588,8 +529,6 @@ export default function DashboardReportingPage() {
               </>
             )}
 
-            {activeTab === 'liquor' && <LiquorVarianceTab />}
-
             {activeTab === 'snapshots' && (
               <CompareSnapshotsTab ingredients={ingredients} />
             )}
@@ -598,7 +537,7 @@ export default function DashboardReportingPage() {
               <ManageSnapshotsTab />
             )}
 
-            {activeTab === 'insights' && (
+          {activeTab === 'insights' && (
               <SnapshotInsightsTab />
             )}
 
@@ -622,7 +561,7 @@ export default function DashboardReportingPage() {
                         <div className="quadrant-chart-summary">
                           <strong>{stars} stars</strong> · {fix} fix/drop · {niche} comfort · {review} to review. Hover any dot for insight.
                         </div>
-                        <details className="quadrant-how-to-read">
+                        <details className="quadrant-how-to-read" open>
                           <summary>How to read</summary>
                           <p>
                             Each dot is a menu item. <strong>Left–right</strong> = volume; <strong>bottom–top</strong> = margin %. Top-right = stars (high vol, high margin); bottom-right = fix or drop (may be loss leaders); top-left = comfort items; bottom-left = review or cut.
@@ -638,13 +577,12 @@ export default function DashboardReportingPage() {
                 })()}
               </>
             )}
-          </section>
-          <footer className="demo-app-footer" role="contentinfo">
-            <span>
-              Margin Insights — free margin insights from your own data.
-            </span>
-          </footer>
-        </div>
+        </section>
+        <footer className="demo-app-footer" role="contentinfo">
+          <span>
+            Margin Insights — free margin insights from your own data.
+          </span>
+        </footer>
       </main>
     </div>
   );

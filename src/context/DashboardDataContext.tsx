@@ -67,6 +67,7 @@ export interface DashboardDataContextValue {
   addMenuItem: (name: string) => void;
   removeMenuItem: (name: string) => void;
   renameMenuItem: (oldName: string, newName: string) => void;
+  duplicateMenuItem: (name: string) => string;
   findOrCreateIngredient: (name: string, unitType: Ingredient['unit_type'], costPerUnit: number) => string;
   toggleSort: (key: keyof ItemMarginRow) => void;
   hasAnyIngredients: boolean;
@@ -185,7 +186,14 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
         });
         if (!res.ok) {
           const text = await res.text();
-          if (res.status !== 503) setSaveError(text || 'Failed to save');
+          if (res.status !== 503) {
+            const isHtml = text.trim().toLowerCase().startsWith('<!doctype') || text.trim().toLowerCase().startsWith('<html');
+            setSaveError(
+              isHtml
+                ? `Save failed: ${res.status === 404 ? 'API route not found. Check deployment.' : `Server returned ${res.status}.`}`
+                : (text || 'Failed to save')
+            );
+          }
         }
       } catch (err) {
         setSaveError(err instanceof Error ? err.message : 'Failed to save');
@@ -412,6 +420,38 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
     if (selectedRecipeName === oldName) setSelectedRecipeName(trimmed);
   }, [selectedRecipeName]);
 
+  const duplicateMenuItem = useCallback((name: string) => {
+    const recipe = recipes.find((r) => r.menu_item_name === name);
+    if (!recipe) return '';
+    const base = `${name.trim()} (copy)`;
+    let newName = base;
+    let n = 1;
+    while (recipes.some((r) => r.menu_item_name === newName)) {
+      newName = `${name.trim()} (copy ${++n})`;
+    }
+    setRecipes((prev) => [
+      ...prev,
+      {
+        menu_item_name: newName,
+        lines: recipe.lines.map((l) => ({ ...l })),
+      },
+    ]);
+    if (name in menuPrices) {
+      setMenuPrices((p) => ({ ...p, [newName]: menuPrices[name] }));
+    }
+    if (name in menuMarginGoal) {
+      setMenuMarginGoal((m) => ({ ...m, [newName]: menuMarginGoal[name] }));
+    }
+    if (name in menuItemCategories) {
+      setMenuItemCategories((m) => ({ ...m, [newName]: menuItemCategories[name] }));
+    }
+    if (name in menuItemIsDrink) {
+      setMenuItemIsDrink((d) => ({ ...d, [newName]: menuItemIsDrink[name] }));
+    }
+    setSelectedRecipeName(newName);
+    return newName;
+  }, [recipes, menuPrices, menuMarginGoal, menuItemCategories, menuItemIsDrink]);
+
   const findOrCreateIngredient = useCallback(
     (name: string, unitType: Ingredient['unit_type'], costPerUnit: number): string => {
       const trimmed = name.trim().toLowerCase();
@@ -517,6 +557,7 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
       addMenuItem,
       removeMenuItem,
       renameMenuItem,
+      duplicateMenuItem,
       findOrCreateIngredient,
       toggleSort,
       hasAnyIngredients,
@@ -562,6 +603,7 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
       addMenuItem,
       removeMenuItem,
       renameMenuItem,
+      duplicateMenuItem,
       findOrCreateIngredient,
       toggleSort,
       hasAnyIngredients,
