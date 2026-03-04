@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/db';
 import { authOptions } from '@/lib/auth-config';
+import { getDbErrorMessage } from '@/lib/db-error';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,10 +42,8 @@ export async function GET() {
     );
   } catch (e) {
     console.error('Admin businesses GET:', e);
-    return NextResponse.json(
-      { error: 'Failed to load businesses' },
-      { status: 500 }
-    );
+    const message = getDbErrorMessage(e, 'Failed to load businesses');
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -85,9 +84,7 @@ export async function POST(request: Request) {
     });
   } catch (e) {
     console.error('Admin businesses POST:', e);
-    return NextResponse.json(
-      { error: 'Failed to create business' },
-      { status: 500 }
-    );
+    const message = getDbErrorMessage(e, 'Failed to create business');
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

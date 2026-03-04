@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { authOptions } from '@/lib/auth-config';
 import { isAdminEmail } from '@/lib/auth';
 import { createSignupCookie } from '@/lib/signup-cookie';
+import { getDbErrorMessage } from '@/lib/db-error';
 
 export const dynamic = 'force-dynamic';
 
@@ -94,9 +95,7 @@ export async function POST(request: Request) {
     return res;
   } catch (e) {
     console.error('Signup POST:', e);
-    return NextResponse.json(
-      { error: 'Failed to create business' },
-      { status: 500 }
-    );
+    const message = getDbErrorMessage(e, 'Failed to create business');
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
