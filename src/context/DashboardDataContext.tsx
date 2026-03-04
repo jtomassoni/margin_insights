@@ -38,6 +38,12 @@ export interface DashboardDataContextValue {
   setMenuCategories: React.Dispatch<React.SetStateAction<string[]>>;
   menuItemCategories: Record<string, string>;
   setMenuItemCategories: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  menuItemIsDrink: Record<string, boolean>;
+  setMenuItemIsDrink: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  menuItemPourOz: Record<string, number>;
+  setMenuItemPourOz: React.Dispatch<React.SetStateAction<Record<string, number>>>;
+  menuItemBottleOz: Record<string, number>;
+  setMenuItemBottleOz: React.Dispatch<React.SetStateAction<Record<string, number>>>;
   editingNum: Record<string, string>;
   setEditingNum: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   ingredientFilter: string;
@@ -48,10 +54,10 @@ export interface DashboardDataContextValue {
   setSortKey: React.Dispatch<React.SetStateAction<keyof ItemMarginRow>>;
   sortDir: 'asc' | 'desc';
   setSortDir: React.Dispatch<React.SetStateAction<'asc' | 'desc'>>;
-  activeTab: 'margins' | 'leaks' | 'pricing' | 'quadrant' | 'liquor';
-  setActiveTab: React.Dispatch<React.SetStateAction<'margins' | 'leaks' | 'pricing' | 'quadrant' | 'liquor'>>;
+  activeTab: 'margins' | 'leaks' | 'pricing' | 'quadrant' | 'liquor' | 'snapshots' | 'manage' | 'insights';
+  setActiveTab: React.Dispatch<React.SetStateAction<'margins' | 'leaks' | 'pricing' | 'quadrant' | 'liquor' | 'snapshots' | 'manage' | 'insights'>>;
   addIngredient: (kind?: IngredientKind) => void;
-  createIngredient: (name: string, unitType: Ingredient['unit_type'], costPerUnit: number, kind?: IngredientKind) => string;
+  createIngredient: (name: string, unitType: Ingredient['unit_type'], costPerUnit: number, kind?: IngredientKind, bottleOz?: number) => string;
   updateIngredient: (id: string, patch: Partial<Ingredient>) => void;
   removeIngredient: (id: string) => void;
   getOrCreateRecipe: (menuItemName: string) => Recipe;
@@ -86,18 +92,26 @@ export function useDashboardData() {
   return ctx;
 }
 
+/** Optional version — returns null when not inside DashboardDataProvider (e.g. demo-dashboard) */
+export function useDashboardDataOptional() {
+  return useContext(DashboardDataContext);
+}
+
 export function DashboardDataProvider({ children }: { children: ReactNode }) {
   const [salesRecords, setSalesRecords] = useState<SalesRecord[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [sortKey, setSortKey] = useState<keyof ItemMarginRow>('revenue');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
-  const [activeTab, setActiveTab] = useState<'margins' | 'leaks' | 'pricing' | 'quadrant' | 'liquor'>('leaks');
+  const [activeTab, setActiveTab] = useState<'margins' | 'leaks' | 'pricing' | 'quadrant' | 'liquor' | 'snapshots' | 'manage' | 'insights'>('leaks');
   const [marginGoal, setMarginGoal] = useState(demoMarginGoal);
   const [menuPrices, setMenuPrices] = useState<Record<string, number>>({});
   const [menuMarginGoal, setMenuMarginGoal] = useState<Record<string, number>>({});
   const [menuCategories, setMenuCategories] = useState<string[]>([]);
   const [menuItemCategories, setMenuItemCategories] = useState<Record<string, string>>({});
+  const [menuItemIsDrink, setMenuItemIsDrink] = useState<Record<string, boolean>>({});
+  const [menuItemPourOz, setMenuItemPourOz] = useState<Record<string, number>>({});
+  const [menuItemBottleOz, setMenuItemBottleOz] = useState<Record<string, number>>({});
   const [editingNum, setEditingNum] = useState<Record<string, string>>({});
   const [ingredientFilter, setIngredientFilter] = useState('');
   const [selectedRecipeName, setSelectedRecipeName] = useState<string>('');
@@ -125,6 +139,9 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
         setMenuMarginGoal(data.menuMarginGoal ?? {});
         setMenuCategories(data.menuCategories ?? []);
         setMenuItemCategories(data.menuItemCategories ?? {});
+        setMenuItemIsDrink(data.menuItemIsDrink ?? {});
+        setMenuItemPourOz(data.menuItemPourOz ?? {});
+        setMenuItemBottleOz(data.menuItemBottleOz ?? {});
         setSalesRecords(data.salesRecords ?? []);
         setMarginGoal(data.marginGoal ?? demoMarginGoal);
         if ((data.recipes ?? []).length > 0) {
@@ -161,6 +178,9 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
             marginGoal,
             menuCategories,
             menuItemCategories,
+            menuItemIsDrink,
+            menuItemPourOz,
+            menuItemBottleOz,
           }),
         });
         if (!res.ok) {
@@ -172,7 +192,7 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
       }
     }, SAVE_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [isLoading, ingredients, recipes, menuPrices, menuMarginGoal, salesRecords, marginGoal, menuCategories, menuItemCategories]);
+  }, [isLoading, ingredients, recipes, menuPrices, menuMarginGoal, salesRecords, marginGoal, menuCategories, menuItemCategories, menuItemIsDrink, menuItemPourOz, menuItemBottleOz]);
 
   const baseIngredients = useMemo(
     () => ingredients.filter((i) => (i.kind ?? 'ingredient') === 'ingredient'),
@@ -265,7 +285,13 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const createIngredient = useCallback(
-    (name: string, unitType: Ingredient['unit_type'], costPerUnit: number, kind: IngredientKind = 'ingredient') => {
+    (
+      name: string,
+      unitType: Ingredient['unit_type'],
+      costPerUnit: number,
+      kind: IngredientKind = 'ingredient',
+      bottleOz?: number
+    ) => {
       const id = uid();
       setIngredients((prev) => [
         ...prev,
@@ -275,6 +301,7 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
           unit_type: unitType,
           cost_per_unit: Math.max(0, costPerUnit),
           kind,
+          bottle_oz: kind === 'liquor' ? (bottleOz ?? 25.4) : undefined,
         },
       ]);
       return id;
@@ -461,6 +488,12 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
       setMenuCategories,
       menuItemCategories,
       setMenuItemCategories,
+      menuItemIsDrink,
+      setMenuItemIsDrink,
+      menuItemPourOz,
+      setMenuItemPourOz,
+      menuItemBottleOz,
+      setMenuItemBottleOz,
       editingNum,
       setEditingNum,
       ingredientFilter,
@@ -509,6 +542,9 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
       menuMarginGoal,
       menuCategories,
       menuItemCategories,
+      menuItemIsDrink,
+      menuItemPourOz,
+      menuItemBottleOz,
       editingNum,
       ingredientFilter,
       selectedRecipeName,

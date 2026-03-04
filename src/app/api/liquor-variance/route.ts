@@ -29,9 +29,11 @@ export async function GET(request: Request) {
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
-    const where: { startDate?: { gte: Date }; endDate?: { lte: Date } } = {};
-    if (startDate) where.startDate = { gte: new Date(startDate) };
-    if (endDate) where.endDate = { lte: new Date(endDate) };
+    const where: { startDate?: { lte: Date }; endDate?: { gte: Date } } = {};
+    if (startDate && endDate) {
+      where.endDate = { gte: new Date(startDate) };
+      where.startDate = { lte: new Date(endDate) };
+    }
 
     const entries = await prisma.liquorVarianceEntry.findMany({
       where: Object.keys(where).length > 0 ? where : undefined,

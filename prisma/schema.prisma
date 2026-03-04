@@ -7,6 +7,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Business {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  users User[]
+
+  @@map("businesses")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  email      String
+  name       String?
+  role       String   @default("owner")
+  businessId String?  @map("business_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  business Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+
+  @@unique([email, businessId])
+  @@map("users")
+}
+
 model Ingredient {
   id           String   @id @default(cuid())
   name         String
@@ -14,6 +39,7 @@ model Ingredient {
   costPerUnit  Float    @map("cost_per_unit")
   kind         String?  @default("ingredient")
   wasteFactor  Float?   @map("waste_factor")
+  bottleOz     Float?   @map("bottle_oz")
 
   recipeLines RecipeLine[]
 
@@ -71,6 +97,30 @@ model Setting {
   value String
 
   @@map("settings")
+}
+
+model CostSnapshot {
+  id        String    @id @default(cuid())
+  name      String
+  createdAt DateTime  @default(now()) @map("created_at")
+  startDate DateTime? @map("start_date")
+  endDate   DateTime? @map("end_date")
+  lines     CostSnapshotLine[]
+
+  @@map("cost_snapshots")
+}
+
+model CostSnapshotLine {
+  id             String   @id @default(cuid())
+  snapshotId     String   @map("snapshot_id")
+  ingredientId   String   @map("ingredient_id")
+  ingredientName String   @map("ingredient_name")
+  unitType       String   @map("unit_type")
+  costPerUnit    Float    @map("cost_per_unit")
+
+  snapshot CostSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  @@map("cost_snapshot_lines")
 }
 
 model LiquorVarianceEntry {

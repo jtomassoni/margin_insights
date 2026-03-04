@@ -227,6 +227,13 @@ export const LostProfitBarChart = ({ items }: { items: ProfitLeakItem[] }) => {
             <span className="num">{hovered.units_sold}</span>
           </div>
           <div className="quadrant-tooltip-row">
+            <span>Current price</span>
+            <span className="num">
+              $
+              {(hovered.units_sold > 0 ? hovered.revenue / hovered.units_sold : 0).toFixed(2)}
+            </span>
+          </div>
+          <div className="quadrant-tooltip-row">
             <span>Suggested price</span>
             <span className="num">${hovered.suggested_price.toFixed(2)}</span>
           </div>
@@ -421,6 +428,9 @@ export const MarginRealityRadar = ({
   const overallScore = (pctRevenueHigh + pctUnitsHigh + weightedMarginCapped + (100 - pctRevenueLow)) / 4;
   const fillColor = overallScore >= 60 ? 'var(--success)' : overallScore >= 35 ? 'var(--warn)' : 'var(--danger)';
 
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const [showTooltip, setShowTooltip] = useState(false);
+
   return (
     <div className="chart-card margin-reality-radar">
       <h4 className="chart-title" title="Where your sales and revenue really sit — high vs low margin">
@@ -495,10 +505,17 @@ export const MarginRealityRadar = ({
           <path
             d={dataPath}
             fill={fillColor}
-            fillOpacity="0.35"
+            fillOpacity={showTooltip ? 0.5 : 0.35}
             stroke={fillColor}
             strokeWidth="1.5"
             strokeLinejoin="round"
+            style={{ cursor: 'pointer' }}
+            onMouseEnter={(e) => {
+              setShowTooltip(true);
+              setTooltipPos({ x: e.clientX, y: e.clientY });
+            }}
+            onMouseMove={(e) => setTooltipPos({ x: e.clientX, y: e.clientY })}
+            onMouseLeave={() => setShowTooltip(false)}
           />
           {axes.map((a, i) => {
             const p = toPoint(i * angleStep, radius + 14);
@@ -527,6 +544,21 @@ export const MarginRealityRadar = ({
           ))}
         </ul>
       </div>
+      {showTooltip && (
+        <div
+          className="quadrant-tooltip"
+          style={{ position: 'fixed', ...clampTooltip(tooltipPos.x, tooltipPos.y, 240, 180), pointerEvents: 'none' }}
+          role="tooltip"
+        >
+          <div className="quadrant-tooltip-name">Your margin mix</div>
+          {axes.map((a, i) => (
+            <div className="quadrant-tooltip-row" key={i}>
+              <span>{a.label}</span>
+              <span className="num">{a.value.toFixed(1)}%</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

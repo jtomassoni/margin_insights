@@ -2,18 +2,18 @@ import { BarChart3, Droplets, Target } from 'lucide-react';
 
 const cards = [
   {
-    title: 'Spot low-margin best-sellers',
-    body: 'See which top sellers make the least profit.',
+    title: 'Spot your low-margin best-sellers',
+    body: 'See which top sellers are actually costing you money.',
     icon: BarChart3,
   },
   {
-    title: 'Catch over-pouring & comps',
-    body: 'Flag variance and comps that hurt pour cost.',
+    title: 'Catch over-pouring and comps',
+    body: 'Find variance and comps that are eating into your pour cost.',
     icon: Droplets,
   },
   {
-    title: 'Price suggestions from real costs',
-    body: 'Target margin pricing using ingredient-level data.',
+    title: 'Price suggestions based on real costs',
+    body: 'Know what to charge using your actual ingredient costs.',
     icon: Target,
   },
 ];
@@ -21,7 +21,7 @@ const cards = [
 export default function ValueCards() {
   return (
     <section className="value-cards-section" aria-label="What you get">
-      <h2 className="value-cards-heading">What you get</h2>
+      <h2 className="value-cards-heading">What we help you with</h2>
       <div className="value-cards">
         {cards.map(({ title, body, icon: Icon }) => (
           <div key={title} className="value-card">

@@ -19,6 +19,20 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). Use the **Upload your POS export** CTA to go to the dashboard.
 
+### Database (menu items, recipes, sales)
+
+The dashboard persists data to PostgreSQL. Set `DATABASE_URL` in `.env` (or `.env.local` for local-only overrides).
+
+- **Local dev**: Copy `.env.local.example` to `.env.local` and set a local Postgres URL (e.g. [Postgres.app](https://postgresapp.com/) or `postgresql://postgres:postgres@localhost:5432/margin_insights`).
+- **Prod**: Use your Neon (or other Postgres) URL in `.env`.
+
+Apply migrations:
+
+```bash
+# Against the DB in your env (or override for local):
+DATABASE_URL="postgresql://localhost/margin_insights" npx prisma migrate dev
+```
+
 ## Sample data
 
 Use `public/sample-toast-export.csv` to test. It is **one week** (Mon–Sun) of line-level sales in **Toast Item Selection Details** style, matching what Toast exports from Sales/Finance → Item Selection Details (or similar sales report CSV on lower tiers).

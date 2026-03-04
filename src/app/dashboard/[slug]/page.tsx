@@ -5,6 +5,7 @@
  * See docs/living-todo.md for requirements.
  */
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { useDashboardData } from '@/context/DashboardDataContext';
 import {
   getCategoryMargins,
@@ -22,9 +23,12 @@ function MarginBadge({ pct }: { pct: number }) {
 }
 
 export default function DashboardOverviewPage() {
+  const params = useParams();
+  const slug = params.slug as string;
   const {
     hasAnyIngredients,
     hasAnyMenuItems,
+    ingredients,
     marginRowsWithPrices,
     leakReport,
     menuPrices,
@@ -83,7 +87,7 @@ export default function DashboardOverviewPage() {
                 per serving.
               </p>
               <div className="dashboard-empty-actions">
-                <Link href="/dashboard/ingredients" className="btn btn-primary">
+                <Link href={`/dashboard/${slug}/ingredients`} className="btn btn-primary">
                   Add menu items
                 </Link>
               </div>
@@ -121,7 +125,7 @@ export default function DashboardOverviewPage() {
           {opportunityTotal > 0 && (
             <div className="overview-opportunity">
               Opportunity detected: <strong>+{fmtCur(opportunityTotal)}</strong>
-              <Link href="/dashboard/reporting?tab=pricing" className="overview-view-details-inline"> View details →</Link>
+              <Link href={`/dashboard/${slug}/reporting?tab=pricing`} className="overview-view-details-inline"> View details →</Link>
             </div>
           )}
         </section>
@@ -142,12 +146,17 @@ export default function DashboardOverviewPage() {
               );
             })}
           </div>
-          <Link href="/dashboard/reporting?tab=margins" className="overview-view-details">View details →</Link>
+          <Link href={`/dashboard/${slug}/reporting?tab=margins`} className="overview-view-details">View details →</Link>
         </section>
 
         {/* 3. WHAT IS COSTING YOU MONEY */}
         <section className="overview-section">
           <h2 className="overview-section-title">What Is Costing You Money</h2>
+          {topLeaks.length > 0 && (
+            <p className="overview-section-hint">
+              Raise prices or shrink portions slightly to bridge these margin gaps.
+            </p>
+          )}
           <div className="overview-card-list">
             {topLeaks.map((item) => (
               <div key={item.item_name} className="overview-card overview-card--leak">
@@ -159,12 +168,17 @@ export default function DashboardOverviewPage() {
               </div>
             ))}
           </div>
-          <Link href="/dashboard/reporting?tab=leaks" className="overview-view-details">View details →</Link>
+          <Link href={`/dashboard/${slug}/reporting?tab=leaks`} className="overview-view-details">View details →</Link>
         </section>
 
         {/* 4. WHAT TO CHANGE TOMORROW */}
         <section className="overview-section">
           <h2 className="overview-section-title">What To Change Tomorrow</h2>
+          {quickWins.length > 0 && (
+            <p className="overview-section-hint">
+              Raise prices or shrink portions slightly to capture these gains.
+            </p>
+          )}
           <div className="overview-quick-wins">
             {quickWins.length > 0 ? (
               quickWins.map((w, i) => (
@@ -177,7 +191,7 @@ export default function DashboardOverviewPage() {
               <p className="overview-quick-wins-empty">No quick wins — margins look healthy.</p>
             )}
           </div>
-          <Link href="/dashboard/reporting?tab=pricing" className="overview-view-details">View details →</Link>
+          <Link href={`/dashboard/${slug}/reporting?tab=pricing`} className="overview-view-details">View details →</Link>
         </section>
 
         {/* 5. CATEGORY PERFORMANCE */}
@@ -191,13 +205,13 @@ export default function DashboardOverviewPage() {
               </div>
             ))}
           </div>
-          <Link href="/dashboard/reporting?tab=margins" className="overview-view-details">View details →</Link>
+          <Link href={`/dashboard/${slug}/reporting?tab=margins`} className="overview-view-details">View details →</Link>
         </section>
 
         <p className="overview-footer-hint">
-          Jump into <Link href="/dashboard/reporting">Reporting</Link> for details,{' '}
-          <Link href="/dashboard/sales">enter sales data</Link>, or update your{' '}
-          <Link href="/dashboard/ingredients">menu &amp; recipes</Link>.
+          Jump into <Link href={`/dashboard/${slug}/reporting`}>Reporting</Link> for details,{' '}
+          <Link href={`/dashboard/${slug}/sales`}>enter sales data</Link>, or update your{' '}
+          <Link href={`/dashboard/${slug}/ingredients`}>menu &amp; recipes</Link>.
         </p>
       </main>
     </div>

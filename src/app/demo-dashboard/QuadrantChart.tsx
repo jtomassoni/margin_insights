@@ -131,7 +131,7 @@ export const QuadrantChart = ({ items, getInsight }: QuadrantChartProps) => {
     <div className="quadrant-chart-wrap">
       <svg
         width="100%"
-        height={HEIGHT}
+        height="100%"
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         preserveAspectRatio="xMidYMid meet"
         className="quadrant-chart-svg"

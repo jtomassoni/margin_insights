@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useParams } from 'next/navigation';
 import {
   ContributionBarChart,
   LostProfitBarChart,
@@ -11,18 +11,26 @@ import {
 } from '@/app/demo-dashboard/Charts';
 import { QuadrantChart, getQuadrantInsight } from '@/app/demo-dashboard/QuadrantChart';
 import { suggestPrice } from '@/insight-engine/services/pricingEngine';
+import { buildQuickWins, getPrimaryIssue } from '@/insight-engine/utils/overviewData';
 import { useDashboardData } from '@/context/DashboardDataContext';
 import LiquorVarianceTab from '@/components/LiquorVarianceTab';
+import CompareSnapshotsTab from '@/components/CompareSnapshotsTab';
+import ManageSnapshotsTab from '@/components/ManageSnapshotsTab';
+import SnapshotInsightsTab from '@/components/SnapshotInsightsTab';
 
-const VALID_TABS = ['leaks', 'margins', 'pricing', 'quadrant', 'liquor'] as const;
+const VALID_TABS = ['leaks', 'margins', 'pricing', 'quadrant', 'liquor', 'snapshots', 'manage', 'insights'] as const;
 
 export default function DashboardReportingPage() {
+  const params = useParams();
+  const slug = params.slug as string;
   const searchParams = useSearchParams();
   const {
     hasAnyMenuItems,
+    ingredients,
     marginGoal,
     menuMarginGoal,
     marginRowsWithPrices,
+    menuPrices,
     sortedRows,
     leakReport,
     quadrantItems,
@@ -51,10 +59,10 @@ export default function DashboardReportingPage() {
                 report, margin charts, and price suggestions will appear here.
               </p>
               <div className="dashboard-empty-actions">
-                <Link href="/dashboard/ingredients" className="btn btn-primary">
+                <Link href={`/dashboard/${slug}/ingredients`} className="btn btn-primary">
                   Add menu items &amp; recipes
                 </Link>
-                <Link href="/dashboard" className="btn btn-secondary">
+                <Link href={`/dashboard/${slug}`} className="btn btn-secondary">
                   Back to overview
                 </Link>
               </div>
@@ -72,7 +80,9 @@ export default function DashboardReportingPage() {
       <main className="demo-main">
         <div className="demo-app-preview">
           <section className="dashboard-section">
-            <h2>Margin &amp; profit</h2>
+            <div className="dashboard-section-header-row">
+              <h2>Margin &amp; profit</h2>
+            </div>
             <div className="tabs">
               <button
                 type="button"
@@ -109,166 +119,162 @@ export default function DashboardReportingPage() {
               >
                 Liquor variance
               </button>
+              <button
+                type="button"
+                className={activeTab === 'snapshots' ? 'active' : ''}
+                onClick={() => setActiveTab('snapshots')}
+              >
+                Cost drift
+              </button>
+              <button
+                type="button"
+                className={activeTab === 'manage' ? 'active' : ''}
+                onClick={() => setActiveTab('manage')}
+              >
+                Manage snapshots
+              </button>
+              <button
+                type="button"
+                className={activeTab === 'insights' ? 'active' : ''}
+                onClick={() => setActiveTab('insights')}
+              >
+                Insights
+              </button>
             </div>
 
             {activeTab === 'leaks' && (
-              <>
-                <div className="profit-leak-hero">
-                  <h3 className="profit-leak-hero-title">Profit leak</h3>
-                  {leakReport.items.length > 0 ? (
-                    <div className="leak-stats-grid">
-                      <div className="leak-stat">
-                        <span className="leak-stat-value">
-                          $
-                          {leakReport.summary.estimated_lost_profit_per_month.toLocaleString(
-                            'en-US',
-                            { minimumFractionDigits: 0, maximumFractionDigits: 0 }
-                          )}
-                        </span>
-                        <span className="leak-stat-label">Est. lost per month</span>
-                      </div>
-                      <div className="leak-stat">
-                        <span className="leak-stat-value">
-                          {leakReport.summary.bottom_margin_skus}
-                        </span>
-                        <span className="leak-stat-label">
-                          Items below {targetPct.toFixed(0)}% target
-                        </span>
-                      </div>
-                      <div className="leak-stat">
-                        <span className="leak-stat-value">
-                          {leakReport.items
-                            .slice(0, 3)
-                            .map(
-                              (i) =>
-                                `${i.item_name} ($${i.estimated_lost_profit_per_month.toFixed(0)})`
-                            )
-                            .join(' · ')}
-                        </span>
-                        <span className="leak-stat-label">Top by lost $</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="leak-stats-grid">
-                      <div className="leak-stat">
-                        <span className="leak-stat-value">0</span>
-                        <span className="leak-stat-label">
-                          Items below target this period
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                {leakReport.items.length > 0 &&
-                  (leakReport.summary.items_to_fix_count > 0 ||
-                    leakReport.summary.strategic_candidate_count > 0) && (
-                    <div className="leak-high-level" aria-label="Leak breakdown">
-                      <div className="leak-high-level-grid">
-                        <div className="leak-high-level-card leak-high-level-fix">
-                          <span className="leak-high-level-value">
-                            $
-                            {leakReport.summary.lost_from_items_to_fix.toLocaleString('en-US', {
-                              minimumFractionDigits: 0,
-                              maximumFractionDigits: 0,
-                            })}
-                          </span>
-                          <span className="leak-high-level-label">
-                            {leakReport.summary.items_to_fix_count} to fix
-                            {(() => {
-                              const toFixItems = leakReport.items.filter(
-                                (i) => i.role === 'to_fix'
-                              );
-                              const names = toFixItems.map((i) => i.item_name);
-                              if (names.length === 0) return null;
-                              if (names.length <= 3)
-                                return <>: {names.join(', ')}</>;
-                              return (
-                                <>: {names.slice(0, 2).join(', ')} +{names.length - 2}</>
-                              );
-                            })()}
-                          </span>
-                        </div>
-                        <div className="leak-high-level-card leak-high-level-strategic">
-                          <span className="leak-high-level-value">
-                            $
-                            {leakReport.summary.lost_from_strategic_candidates.toLocaleString(
-                              'en-US',
-                              { minimumFractionDigits: 0, maximumFractionDigits: 0 }
-                            )}
-                          </span>
-                          <span className="leak-high-level-label">
-                            {leakReport.summary.strategic_candidate_count} possible loss leader
-                            {leakReport.summary.strategic_candidate_count !== 1 ? 's' : ''}
-                            {(() => {
-                              const strategicItems = leakReport.items.filter(
-                                (i) => i.role === 'strategic_candidate'
-                              );
-                              const names = strategicItems.map((i) => i.item_name);
-                              if (names.length === 0) return null;
-                              if (names.length <= 3)
-                                return <>: {names.join(', ')}</>;
-                              return (
-                                <>: {names.slice(0, 2).join(', ')} +{names.length - 2}</>
-                              );
-                            })()}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                {leakReport.items.length > 0 && (
+              <div className="profit-leak-report">
+                {leakReport.items.length > 0 ? (
                   <>
-                    <p className="leak-next-step">
-                      Price suggestions tab → recommended prices per item.
-                    </p>
-                    <LostProfitBarChart items={leakReport.items} />
+                    <div className="profit-leak-summary">
+                      <span className="profit-leak-summary-amount">
+                        $
+                        {leakReport.summary.estimated_lost_profit_per_month.toLocaleString(
+                          'en-US',
+                          { minimumFractionDigits: 0, maximumFractionDigits: 0 }
+                        )}
+                      </span>
+                      <span className="profit-leak-summary-text">
+                        est. lost per month
+                        {' · '}
+                        $
+                        {(leakReport.summary.estimated_lost_profit_per_month * 12).toLocaleString(
+                          'en-US',
+                          { minimumFractionDigits: 0, maximumFractionDigits: 0 }
+                        )}
+                        /yr
+                        {' · '}
+                        {leakReport.summary.bottom_margin_skus} items below {targetPct.toFixed(0)}% target
+                      </span>
+                    </div>
+                    <div
+                      className={
+                        buildQuickWins(leakReport.items, menuPrices).length > 0
+                          ? 'profit-leak-main profit-leak-main--with-actions'
+                          : 'profit-leak-main'
+                      }
+                    >
+                      <div className="profit-leak-chart">
+                        <LostProfitBarChart items={leakReport.items} />
+                      </div>
+                      {(() => {
+                        const quickWins = buildQuickWins(leakReport.items, menuPrices);
+                        if (quickWins.length === 0) return null;
+                        return (
+                          <div className="profit-leak-actions">
+                            <h4 className="profit-leak-actions-title">Quick wins</h4>
+                            <p className="profit-leak-actions-desc">
+                              Raise these prices first to capture the most profit. Tip: Shrinking portions slightly can also help bridge margin gaps without raising prices.
+                            </p>
+                            <ul className="profit-leak-actions-list">
+                              {quickWins.map((w, idx) => (
+                                <li key={idx}>
+                                  <span className="profit-leak-actions-action">{w.action}</span>
+                                  <span className="profit-leak-actions-gain">
+                                    +${w.expectedGain.toFixed(0)}/mo
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                            <Link href={`/dashboard/${slug}/reporting?tab=pricing`} className="profit-leak-actions-link">
+                              See all price suggestions →
+                            </Link>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                    <div className="profit-leak-table-section">
+                      <h4 className="profit-leak-table-title">Leak items</h4>
+                      <p className="profit-leak-table-hint">
+                        Raise prices or shrink portions slightly to bridge these margin gaps.
+                      </p>
+                      <div className="table-wrap">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>Item</th>
+                              <th>Current price</th>
+                              <th>Suggested price</th>
+                              <th>Est. lost/mo</th>
+                              <th>Margin %</th>
+                              <th>Units</th>
+                              <th>Role</th>
+                              <th>Likely cause</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {leakReport.items.map((i) => {
+                              const currentPrice =
+                                i.units_sold > 0 ? i.revenue / i.units_sold : 0;
+                              return (
+                                <tr key={i.item_name}>
+                                  <td className="profit-leak-item-name">{i.item_name}</td>
+                                  <td className="num">${currentPrice.toFixed(2)}</td>
+                                  <td className="num">${i.suggested_price.toFixed(2)}</td>
+                                  <td className="num profit-leak-lost">
+                                    ${i.estimated_lost_profit_per_month.toFixed(2)}
+                                  </td>
+                                  <td className="num">{i.current_margin_pct.toFixed(1)}%</td>
+                                  <td className="num">{i.units_sold}</td>
+                                  <td>
+                                    {i.role === 'strategic_candidate' ? (
+                                      <span
+                                        className="badge badge-strategic"
+                                        title="High volume, low margin — may be an intentional loss leader"
+                                      >
+                                        Possible loss leader
+                                      </span>
+                                    ) : (
+                                      <span
+                                        className="badge badge-fix"
+                                        title="Raise price or shrink portions slightly to hit target margin"
+                                      >
+                                        Fix price
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td>
+                                    <span className="leak-cause-badge" title={getPrimaryIssue(i)}>
+                                      {getPrimaryIssue(i)}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </>
+                ) : (
+                  <div className="profit-leak-empty">
+                    <span className="profit-leak-empty-amount">0</span>
+                    <span className="profit-leak-empty-text">
+                      Items below target this period — no profit leaks detected.
+                    </span>
+                  </div>
                 )}
-                <div className="table-wrap">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Item</th>
-                        <th>Current margin %</th>
-                        <th>Units sold</th>
-                        <th>Suggested price</th>
-                        <th>Est. lost/month</th>
-                        <th>Role</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {leakReport.items.map((i) => (
-                        <tr key={i.item_name}>
-                          <td>{i.item_name}</td>
-                          <td className="num">{i.current_margin_pct.toFixed(1)}%</td>
-                          <td className="num">{i.units_sold}</td>
-                          <td className="num">${i.suggested_price.toFixed(2)}</td>
-                          <td className="num">
-                            ${i.estimated_lost_profit_per_month.toFixed(2)}
-                          </td>
-                          <td>
-                            {i.role === 'strategic_candidate' ? (
-                              <span
-                                className="badge badge-strategic"
-                                title="High volume, low margin — may be an intentional loss leader"
-                              >
-                                Possible loss leader
-                              </span>
-                            ) : (
-                              <span
-                                className="badge badge-fix"
-                                title="Recommend raising price to hit target margin"
-                              >
-                                Fix price
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
+              </div>
             )}
 
             {activeTab === 'margins' && (
@@ -300,7 +306,7 @@ export default function DashboardReportingPage() {
                         <strong>At a glance:</strong> Your best contributors (green) are{' '}
                         {topNames || '—'}.{' '}
                         {watchNames
-                          ? `Watch: ${watchNames} — raise prices or reduce cost to hit target margin.`
+                          ? `Watch: ${watchNames} — raise prices, shrink portions slightly, or reduce cost to hit target margin.`
                           : 'Most items are at or above target margin.'}
                       </div>
                       <div className="dashboard-charts-grid">
@@ -442,7 +448,7 @@ export default function DashboardReportingPage() {
                             </span>
                           </div>
                           <p className="profit-opportunity-hint">
-                            Raise prices on {needRaise.length} items to capture this. Start with the highest projected gain below.
+                            Raise prices on {needRaise.length} items to capture this. Start with the highest projected gain below. Tip: Shrinking portions slightly can also help bridge margin gaps without raising prices.
                           </p>
                         </div>
                       ) : (
@@ -571,7 +577,7 @@ export default function DashboardReportingPage() {
                         Per-item target margin when set in recipe builder;
                         otherwise default {(marginGoal * 100).toFixed(0)}%.{' '}
                         <strong>Below target:</strong> suggested price and %
-                        increase to get there (volume unchanged).{' '}
+                        increase to get there (volume unchanged). Shrinking portions slightly can also help bridge gaps without raising prices.{' '}
                         <strong>At/above target:</strong> no change; &quot;Above by
                         X%&quot; = margin above target. Large suggested increases mean you&apos;re selling at a
                         significant loss — those items are flagged.
@@ -583,6 +589,18 @@ export default function DashboardReportingPage() {
             )}
 
             {activeTab === 'liquor' && <LiquorVarianceTab />}
+
+            {activeTab === 'snapshots' && (
+              <CompareSnapshotsTab ingredients={ingredients} />
+            )}
+
+            {activeTab === 'manage' && (
+              <ManageSnapshotsTab />
+            )}
+
+            {activeTab === 'insights' && (
+              <SnapshotInsightsTab />
+            )}
 
             {activeTab === 'quadrant' && (
               <>
@@ -599,75 +617,25 @@ export default function DashboardReportingPage() {
                   const niche = byQuad.low_volume_high_margin || 0;
                   const review = byQuad.low_volume_low_margin || 0;
                   return (
-                    <div
-                      className="actionable-strip"
-                      style={{ marginBottom: '1rem' }}
-                    >
-                      <strong>Your menu at a glance:</strong> {stars} stars
-                      (high volume, high margin), {fix} fix or drop (high volume,
-                      low margin — may be loss leaders), {niche} comfort items
-                      (low volume, high margin — may cost more to store than
-                      worth), {review} to review. Hover any dot for a
-                      plain-English insight.
+                    <div className="quadrant-chart-section">
+                      <div className="quadrant-chart-section-header">
+                        <div className="quadrant-chart-summary">
+                          <strong>{stars} stars</strong> · {fix} fix/drop · {niche} comfort · {review} to review. Hover any dot for insight.
+                        </div>
+                        <details className="quadrant-how-to-read">
+                          <summary>How to read</summary>
+                          <p>
+                            Each dot is a menu item. <strong>Left–right</strong> = volume; <strong>bottom–top</strong> = margin %. Top-right = stars (high vol, high margin); bottom-right = fix or drop (may be loss leaders); top-left = comfort items; bottom-left = review or cut.
+                          </p>
+                        </details>
+                      </div>
+                      <QuadrantChart
+                        items={quadrantItems}
+                        getInsight={getQuadrantInsight}
+                      />
                     </div>
                   );
                 })()}
-                <div className="quadrant-chart-section">
-                  <div className="quadrant-how-to-read">
-                    <h4
-                      style={{
-                        margin: '0 0 0.5rem',
-                        fontSize: '0.95rem',
-                      }}
-                    >
-                      How to read this chart
-                    </h4>
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: '0.85rem',
-                        color: 'var(--text-muted)',
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      Each dot is a menu item.{' '}
-                      <strong style={{ color: 'var(--text)' }}>
-                        Left–right
-                      </strong>{' '}
-                      is volume (how many you sold);{' '}
-                      <strong style={{ color: 'var(--text)' }}>
-                        bottom–top
-                      </strong>{' '}
-                      is margin % (how much you keep after cost). The lines split
-                      your menu into four quadrants:{' '}
-                      <strong style={{ color: 'var(--success)' }}>
-                        top-right
-                      </strong>{' '}
-                      = high volume, high margin (your stars);{' '}
-                      <strong style={{ color: 'var(--warn)' }}>
-                        bottom-right
-                      </strong>{' '}
-                      = high volume, low margin (may be loss leaders — OK if they
-                      drive other sales, otherwise raise price);{' '}
-                      <strong style={{ color: 'var(--text)' }}>
-                        top-left
-                      </strong>{' '}
-                      = low volume, high margin (comfort items; they may cost
-                      more to store than they&apos;re worth — regulars might
-                      switch to something simpler if you drop them or make them
-                      specials only);{' '}
-                      <strong style={{ color: 'var(--text-muted)' }}>
-                        bottom-left
-                      </strong>{' '}
-                      = low volume, low margin (review or cut). Hover any dot to
-                      see the numbers and a plain-English take.
-                    </p>
-                  </div>
-                  <QuadrantChart
-                    items={quadrantItems}
-                    getInsight={getQuadrantInsight}
-                  />
-                </div>
               </>
             )}
           </section>

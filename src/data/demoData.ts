@@ -340,6 +340,7 @@ function buildIngredientsAndRecipesFromRecipeMap(recipeMap: Record<string, { nam
         cost_per_unit: perEach
           ? (ingredientCostPerEachUS[name] ?? 0)
           : (ingredientCostPerOzUS[name] ?? 0),
+        kind: 'ingredient',
       });
     }
   }

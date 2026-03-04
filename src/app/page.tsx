@@ -25,12 +25,12 @@ const LandingPage = () => (
           <div className="hero-content">
             <h1>Know your true margin. Down to the ingredient.</h1>
             <p className="hero-sub">
-              Your best-sellers can be your least profitable — we flag the leaks in pour cost and menu pricing using your POS data.
+              Your best-sellers can be your least profitable. We help you spot where money is leaking — in pour cost, over-pouring, and menu pricing — so you can fix it.
             </p>
             <div className="hero-demo-links">
-              <Link href="/demo-dashboard" className="btn btn-primary btn-lg">Try the demo</Link>
+              <Link href="/login" className="btn btn-primary btn-lg">Try it free</Link>
             </div>
-            <p className="hero-trust">Works with Square, Toast &amp; CSV exports. No POS login required.</p>
+            <p className="hero-trust">Works with Square, Toast &amp; CSV exports. No POS login required. Free to use.</p>
           </div>
           <div className="hero-image">
             <div className="hero-image-wrap">
@@ -45,23 +45,23 @@ const LandingPage = () => (
       <section id="how" className="section how">
         <h2>How it works</h2>
         <div className="how-workflow">
-          <Image src="/images/workflow.png" alt="Workflow: try demo, recipe & cost, see the leaks" width={800} height={280} className="workflow-img" />
+          <Image src="/images/workflow.png" alt="Workflow: sign up free, recipe & cost, see the leaks" width={800} height={280} className="workflow-img" />
         </div>
         <div className="steps">
           <div className="step">
             <span className="step-num">1</span>
-            <h3>Try the demo</h3>
-            <p>Run our demo with sample Toast-style data. See item names, units sold, and revenue in one place.</p>
+            <h3>Add your menu</h3>
+            <p>Create a free account and add a few menu items with sales. No credit card.</p>
           </div>
           <div className="step">
             <span className="step-num">2</span>
-            <h3>Recipe & cost</h3>
-            <p>Map menu items to ingredients and costs. We compute true cost per serving.</p>
+            <h3>Add recipes & costs</h3>
+            <p>Map items to ingredients and costs. We compute true cost per serving.</p>
           </div>
           <div className="step">
             <span className="step-num">3</span>
-            <h3>See the leaks</h3>
-            <p>We rank items by margin and volume, flag bottom-margin SKUs, and estimate lost profit if you raise prices to a target margin.</p>
+            <h3>See where you’re losing money</h3>
+            <p>We rank items by margin and volume, flag bottom-margin items, and show you how much you could recover with better pricing.</p>
           </div>
         </div>
       </section>
@@ -74,9 +74,9 @@ const LandingPage = () => (
           </div>
           <div className="report-copy">
             <p className="report-message">
-              &ldquo;You&apos;re losing approximately <strong>$1,240/month</strong> on 8 SKU(s) by pricing below target margin.&rdquo;
+              &ldquo;You&apos;re losing approximately <strong>$1,240/month</strong> on 8 items by pricing below your target margin.&rdquo;
             </p>
-            <p className="report-detail">Bottom-margin items get actionable price suggestions and estimated upside. No guesswork.</p>
+            <p className="report-detail">We show you exactly which items to adjust and what price to try. No guesswork.</p>
           </div>
         </div>
       </section>
@@ -87,24 +87,20 @@ const LandingPage = () => (
             <Image src="/images/owner-illustration.png" alt="" width={320} height={280} />
           </div>
           <div className="pricing-content">
-        <h2>Pricing</h2>
-        <div className="price-cards">
-          <div className="price-card">
-            <div className="price-amount">$249<span>/month</span></div>
-            <p>Full access: CSV ingestion, recipe builder, margin dashboard, profit leak report, and price suggestions. Cancel anytime.</p>
-            <div className="price-card-actions">
-              <Link href="/demo-dashboard" className="btn btn-primary">Try the demo</Link>
+            <h2>Pricing</h2>
+            <div className="price-cards">
+              <div className="price-card">
+                <div className="price-amount">$0<span>/month</span></div>
+                <p>
+                  Margin Insights is free to use. You get the full ingredient-level costing, menu margin dashboard, profit leak report, and price suggestions — no hidden fees.
+                </p>
+                <div className="price-card-actions">
+                  <Link href="/login" className="btn btn-primary">
+                    Get started free
+                  </Link>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="price-card price-card-lifetime">
-            <span className="price-card-badge">Limited — while we&apos;re new</span>
-            <div className="price-amount">$2,000<span> once</span></div>
-            <p>Lifetime access. Same full product — never pay a subscription. For our first customers who want to own it forever.</p>
-            <div className="price-card-actions">
-              <Link href="/demo-dashboard" className="btn btn-outline">Try the demo first</Link>
-            </div>
-          </div>
-        </div>
           </div>
         </div>
       </section>
@@ -112,17 +108,17 @@ const LandingPage = () => (
       <section id="faq" className="section faq">
         <h2>FAQ</h2>
         <dl className="faq-list">
-          <dt>Data security?</dt>
-          <dd>We store minimal data per restaurant. No employee names, no sensitive identifiers. Your data is siloed to your instance.</dd>
-          <dt>Contract?</dt>
-          <dd>No long-term lock-in. Cancel when you want.</dd>
+          <dt>Is my data safe?</dt>
+          <dd>We store minimal data per restaurant. No employee names, no sensitive identifiers. Your data stays with you.</dd>
+          <dt>Any contract?</dt>
+          <dd>No. Use it free, stop when you want.</dd>
           <dt>What POS do you support?</dt>
           <dd>Works with Square, Toast &amp; CSV exports. No POS login required. More integrations coming.</dd>
         </dl>
       </section>
 
       <footer className="landing-footer">
-        <p>Margin Insights — POS Profit Intelligence for independents.</p>
+        <p>Margin Insights — helping independent restaurants keep more of what they make.</p>
       </footer>
     </div>
 );

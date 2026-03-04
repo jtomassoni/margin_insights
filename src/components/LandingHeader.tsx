@@ -29,7 +29,7 @@ export default function LandingHeader() {
       <Link href="#report" onClick={() => setMenuOpen(false)}>Example report</Link>
       <Link href="#pricing" onClick={() => setMenuOpen(false)}>Pricing</Link>
       <Link href="#faq" onClick={() => setMenuOpen(false)}>FAQ</Link>
-      <Link href="/demo-dashboard" className="btn btn-primary" onClick={() => setMenuOpen(false)}>Try the demo</Link>
+      <Link href="/login" className="btn btn-primary" onClick={() => setMenuOpen(false)}>Log in</Link>
     </>
   );
 
@@ -42,7 +42,7 @@ export default function LandingHeader() {
           <Link href="#report">Example report</Link>
           <Link href="#pricing">Pricing</Link>
           <Link href="#faq">FAQ</Link>
-          <Link href="/demo-dashboard" className="btn btn-primary">Try the demo</Link>
+          <Link href="/login" className="btn btn-primary">Log in</Link>
         </nav>
         <button
           type="button"

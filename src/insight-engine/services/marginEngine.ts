@@ -32,27 +32,37 @@ const aggregateSales = (records: SalesRecord[]): Map<string, { units_sold: numbe
 /**
  * Compute per-item margins and contribution.
  * Items without cost get margin NaN/0; caller can filter.
+ * When menuPrices is provided, revenue is computed as units_sold × price for that item
+ * (keeps revenue in sync when price is edited in menu manager).
  */
 export const computeMargins = (
   records: SalesRecord[],
-  itemCosts: Map<string, number>
+  itemCosts: Map<string, number>,
+  menuPrices?: Record<string, number>
 ): ItemMarginRow[] => {
   const salesByItem = aggregateSales(records);
   return Array.from(salesByItem.entries()).map(([item_name, { units_sold, revenue }]) => {
+    const price = menuPrices?.[item_name];
+    const effectiveRevenue =
+      price != null && price > 0 && units_sold > 0
+        ? round2(units_sold * price)
+        : revenue;
     const cost_per_serving = itemCosts.get(item_name) ?? 0;
     const total_cost = cost_per_serving * units_sold;
-    const contribution_margin = revenue - total_cost;
-    const gross_margin_pct = revenue > 0 ? (contribution_margin / revenue) * 100 : 0;
-    const price = units_sold > 0 ? round2(revenue / units_sold) : undefined;
+    const contribution_margin = effectiveRevenue - total_cost;
+    const gross_margin_pct =
+      effectiveRevenue > 0 ? (contribution_margin / effectiveRevenue) * 100 : 0;
+    const impliedPrice =
+      units_sold > 0 ? round2(effectiveRevenue / units_sold) : undefined;
     return {
       item_name,
       units_sold,
-      revenue,
+      revenue: effectiveRevenue,
       cost_per_serving,
       total_cost,
       gross_margin_pct: round2(gross_margin_pct),
       contribution_margin: round2(contribution_margin),
-      price,
+      price: impliedPrice,
     };
   });
 };
