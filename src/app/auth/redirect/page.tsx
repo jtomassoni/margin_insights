@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth-config';
 
 /**
  * Post-OAuth redirect handler. NextAuth sends users here when no explicit callbackUrl.
- * Routes: admin → /admin, owner with business → /dashboard/{slug}, new owner → /signup
+ * Routes: admin → /dashboard, owner with business → /dashboard/{slug}, new owner → /signup
  */
 export default async function AuthRedirectPage() {
   const session = await getServerSession(authOptions);
@@ -16,7 +16,7 @@ export default async function AuthRedirectPage() {
   const businessSlug = (session.user as { businessSlug?: string | null }).businessSlug;
 
   if (role === 'admin') {
-    redirect('/admin');
+    redirect('/dashboard');
   }
 
   if (role === 'owner' && businessSlug) {

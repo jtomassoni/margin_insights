@@ -134,7 +134,7 @@ const DashboardHeader = ({ slug = 'demo' }: { slug?: string }) => {
           <div className="dashboard-mobile-menu-section dashboard-mobile-menu-section--user">
             {(session?.user || status === 'loading') && (
               <Link
-                href={(session?.user as { role?: string })?.role === 'admin' ? '/admin' : `/dashboard/${slug}/profile`}
+                href={(session?.user as { role?: string })?.role === 'admin' ? '/dashboard/profile' : `/dashboard/${slug}/profile`}
                 className="dashboard-mobile-menu-link dashboard-mobile-menu-link--user"
                 onClick={() => setNavOpen(false)}
               >
@@ -222,7 +222,7 @@ const DashboardHeader = ({ slug = 'demo' }: { slug?: string }) => {
             )}
             {(session?.user || status === 'loading') && (
               <Link
-                href={(session?.user as { role?: string })?.role === 'admin' ? '/admin' : `/dashboard/${slug}/profile`}
+                href={(session?.user as { role?: string })?.role === 'admin' ? '/dashboard/profile' : `/dashboard/${slug}/profile`}
                 className="dashboard-header-nav-user"
                 onClick={() => setNavOpen(false)}
                 aria-busy={status === 'loading'}
@@ -277,7 +277,7 @@ const DashboardHeader = ({ slug = 'demo' }: { slug?: string }) => {
           )}
           {(session?.user || status === 'loading') && (
             <Link
-              href={(session?.user as { role?: string })?.role === 'admin' ? '/admin' : `/dashboard/${slug}/profile`}
+              href={(session?.user as { role?: string })?.role === 'admin' ? '/dashboard/profile' : `/dashboard/${slug}/profile`}
               className="dashboard-header-user"
               aria-busy={status === 'loading'}
             >

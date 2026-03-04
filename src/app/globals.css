@@ -1908,42 +1908,6 @@ tr:hover td {
   font-size: 0.9rem;
   color: var(--text-muted);
 }
-.admin-demo-mode {
-  margin-top: 2rem;
-  padding: 1.25rem;
-  background: hsl(var(--muted) / 0.3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-.admin-demo-mode-title {
-  margin: 0 0 0.5rem;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text);
-}
-.admin-demo-mode-desc {
-  margin: 0 0 1rem;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  line-height: 1.45;
-}
-.admin-demo-mode-status {
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-}
-.admin-demo-mode-label {
-  font-weight: 600;
-  color: var(--text);
-  margin-right: 0.5rem;
-}
-.admin-demo-mode-value {
-  color: var(--accent);
-}
-.admin-demo-mode-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
 
 .admin-section {
   padding: 0.5rem 0;

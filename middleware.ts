@@ -9,23 +9,33 @@ function isProtected(pathname: string): boolean {
   return PROTECTED_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
-/** Reserved route names — these are NOT company slugs (old URL structure) */
+/** Reserved route names — these are NOT company slugs (sub-routes under a company) */
 const DASHBOARD_RESERVED = ['reporting', 'ingredients', 'sales', 'profile'];
+
+/** Admin-only segments under /dashboard (businesses, users, profile) */
+const DASHBOARD_ADMIN_SEGMENTS = ['businesses', 'users', 'profile'];
 
 /**
  * Dashboard paths require a company slug: /dashboard/[slug] or /dashboard/[slug]/...
- * Paths like /dashboard, /dashboard/reporting (reserved name as first segment) are invalid.
+ * Admin routes: /dashboard, /dashboard/businesses, /dashboard/users, /dashboard/profile
  */
 function getDashboardSlug(pathname: string): string | null {
   const match = pathname.match(/^\/dashboard\/([^/]+)/);
   const segment = match ? match[1] : null;
-  if (!segment || DASHBOARD_RESERVED.includes(segment)) return null;
+  if (!segment || DASHBOARD_RESERVED.includes(segment) || DASHBOARD_ADMIN_SEGMENTS.includes(segment)) return null;
   return segment;
 }
 
 function isDashboardWithSlug(pathname: string): boolean {
   const slug = getDashboardSlug(pathname);
   return slug !== null;
+}
+
+function isAdminDashboardRoute(pathname: string): boolean {
+  if (pathname === '/dashboard') return true;
+  const match = pathname.match(/^\/dashboard\/([^/]+)/);
+  const segment = match ? match[1] : null;
+  return segment !== null && DASHBOARD_ADMIN_SEGMENTS.includes(segment);
 }
 
 export async function middleware(request: NextRequest) {
@@ -49,24 +59,30 @@ export async function middleware(request: NextRequest) {
   const role = token.role as 'admin' | 'owner' | undefined;
   const businessSlug = token.businessSlug as string | null | undefined;
 
-  // Admin users: redirect /dashboard without slug to /admin (admin home)
-  // Admin CAN access /dashboard/[slug] to super-jump into any company
-  if (role === 'admin' && (pathname === '/dashboard' || (pathname.startsWith('/dashboard/') && !isDashboardWithSlug(pathname)))) {
-    return NextResponse.redirect(new URL('/admin', request.url));
+  // Redirect /admin to /dashboard (consolidated endpoint)
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    if (role !== 'admin') {
+      const target = businessSlug ? `/dashboard/${businessSlug}` : '/signup';
+      return NextResponse.redirect(new URL(target, request.url));
+    }
+    const target = pathname === '/admin' ? '/dashboard' : pathname.replace(/^\/admin/, '/dashboard');
+    return NextResponse.redirect(new URL(target, request.url));
   }
 
-  // /dashboard/admin is the special admin company — redirect to /admin (no restaurant data)
+  // Admin dashboard routes: /dashboard, /dashboard/businesses, /dashboard/users, /dashboard/profile
+  // Admin: allow. Owner: redirect to their company dashboard
+  if (isAdminDashboardRoute(pathname)) {
+    if (role === 'admin') return NextResponse.next();
+    const target = businessSlug ? `/dashboard/${businessSlug}` : '/signup';
+    return NextResponse.redirect(new URL(target, request.url));
+  }
+
+  // /dashboard/admin is the special admin company — redirect to /dashboard (admin home)
   if (pathname === '/dashboard/admin' || pathname.startsWith('/dashboard/admin/')) {
-    return NextResponse.redirect(new URL('/admin', request.url));
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  // Non-admin users: block /admin
-  if (role !== 'admin' && (pathname === '/admin' || pathname.startsWith('/admin/'))) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  // Dashboard without slug (e.g. /dashboard, /dashboard/reporting) — invalid for everyone
-  // Redirect to login so user must pick a company (owner gets their slug, admin goes to /admin)
+  // Dashboard without valid slug (e.g. /dashboard/reporting) — invalid, redirect to login
   if (pathname === '/dashboard' || (pathname.startsWith('/dashboard/') && !isDashboardWithSlug(pathname))) {
     const signInUrl = new URL('/login', request.url);
     signInUrl.searchParams.set('callbackUrl', pathname);

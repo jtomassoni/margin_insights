@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
-export default function AdminOverviewPage() {
+export default function DashboardAdminOverviewPage() {
   const [businessCount, setBusinessCount] = useState<number | null>(null);
   const [userCount, setUserCount] = useState<number | null>(null);
 
@@ -39,13 +39,13 @@ export default function AdminOverviewPage() {
         Manage businesses and users across your multi-tenant platform.
       </p>
       <div className="admin-overview-cards">
-        <Link href="/admin/businesses" className="admin-overview-card">
+        <Link href="/dashboard/businesses" className="admin-overview-card">
           <span className="admin-overview-card-value">
             {businessCount ?? '—'}
           </span>
           <span className="admin-overview-card-label">Businesses</span>
         </Link>
-        <Link href="/admin/users" className="admin-overview-card">
+        <Link href="/dashboard/users" className="admin-overview-card">
           <span className="admin-overview-card-value">
             {userCount ?? '—'}
           </span>

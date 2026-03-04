@@ -115,7 +115,7 @@ function JumpToCompanyFlyout({
   );
 }
 
-export default function AdminLayout({
+export default function DashboardAdminLayout({
   children,
 }: {
   children: React.ReactNode;

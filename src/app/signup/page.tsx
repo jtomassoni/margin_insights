@@ -22,7 +22,7 @@ export default function SignupPage() {
       const role = (session.user as { role?: string }).role;
       const businessSlug = (session.user as { businessSlug?: string | null }).businessSlug;
       if (role === 'admin') {
-        router.replace('/admin');
+        router.replace('/dashboard');
         return;
       }
       if (role === 'owner' && businessSlug) {

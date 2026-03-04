@@ -59,13 +59,12 @@ const LoginContent = () => {
       const session = await getSession();
       const role = (session?.user as { role?: string })?.role;
       const businessSlug = (session?.user as { businessSlug?: string | null })?.businessSlug;
-      // Admin → /admin. Owner → /dashboard/{slug} (requires business slug from DB)
       const targetUrl =
         role === 'admin'
-          ? '/admin'
+          ? '/dashboard'
           : businessSlug
             ? `/dashboard/${businessSlug}`
-            : '/login';
+            : '/signup';
       router.push(targetUrl);
       router.refresh();
     } catch {
